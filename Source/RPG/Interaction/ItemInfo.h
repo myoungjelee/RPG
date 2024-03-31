@@ -44,7 +44,7 @@ struct FItemInfo : public FTableRowBase
 	EItemType ItemType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Potency;
+	float Potency;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Price;

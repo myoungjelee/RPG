@@ -17,7 +17,6 @@ AInteractionBase::AInteractionBase()
 	{
 		Mesh->SetStaticMesh(MeshRef.Object);
 	}
-		
 }
 
 // Called when the game starts or when spawned
