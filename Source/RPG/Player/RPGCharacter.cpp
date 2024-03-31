@@ -9,6 +9,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "UI/PlayerHUDWidget.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -17,8 +18,17 @@
 ARPGCharacter::ARPGCharacter()
 {
 	// Set size for collision capsule
-	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+	GetCapsuleComponent()->InitCapsuleSize(26.f, 96.0f);
 		
+	// 캐릭터 메시 설정
+	GetMesh()->SetRelativeLocation(FVector(0.f, 0.000856f, -96.f));
+	GetMesh()->SetRelativeRotation(FRotator(0.f, 270.f, 0.f));
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT("/ Script / Engine.SkeletalMesh'/Game/ThirdPerson/Blueprints/Character/Player/Components/akai_e_espiritu_2_.akai_e_espiritu_2_'"));
+	if (MeshRef.Object)
+	{
+		GetMesh()->SetSkeletalMesh(MeshRef.Object);
+	}
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -32,9 +42,13 @@ ARPGCharacter::ARPGCharacter()
 	// instead of recompiling to adjust them
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+
+	// 무브먼트 설정
+	GetCharacterMovement()->MaxAcceleration = 768.f;
+	GetCharacterMovement()->BrakingFrictionFactor = 0.75f;
+	GetCharacterMovement()->MaxWalkSpeed = 450.f;
+	GetCharacterMovement()->BrakingDecelerationWalking = 0.f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -49,6 +63,25 @@ ARPGCharacter::ARPGCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	ConstructorHelpers::FClassFinder<UPlayerHUDWidget> HUDRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/ThirdPerson/Blueprints/HUD/WBP_PlayerHUD.WBP_PlayerHUD_C'"));
+	if (HUDRef.Class)
+	{
+		CSHUDWidgetClass = HUDRef.Class;
+	}
+
+	// 스탯 초기화
+	Level = 1;
+	CurrentHealth = 100.f;
+	MaxHealth = 100.f;
+	CurrentMana = 100.f;
+	MaxMana = 100.f;
+	CurrentXP = 0.f;
+	NextLevelXP = 50.f;
+	Strength = 10;
+	Defense = 10;
+	SwordModifier = 0;
+	ShieldModifier = 0;
 }
 
 void ARPGCharacter::BeginPlay()
@@ -64,6 +97,9 @@ void ARPGCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	CSHUDWidget = CreateWidget<UPlayerHUDWidget>(GetWorld(), CSHUDWidgetClass);
+	CSHUDWidget->AddToViewport();
 }
 
 //////////////////////////////////////////////////////////////////////////
