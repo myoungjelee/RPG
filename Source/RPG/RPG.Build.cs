@@ -11,7 +11,7 @@ public class RPG : ModuleRules
         // 이거 해줘야 Source폴더에 있는 폴더들 경로 가져올수 있음 (헤더 추가할때)
         PublicIncludePaths.AddRange(new string[] { "RPG" });
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput", "UMG" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput", "UMG", "SlateCore" });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
 

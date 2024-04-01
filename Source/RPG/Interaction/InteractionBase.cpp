@@ -3,6 +3,8 @@
 
 #include "Interaction/InteractionBase.h"
 #include "Components/StaticMeshComponent.h"
+#include "Player/RPGCharacter.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AInteractionBase::AInteractionBase()
@@ -31,5 +33,15 @@ void AInteractionBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AInteractionBase::Interact()
+{
+	ARPGCharacter* Player = Cast<ARPGCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	if (Player)
+	{
+		Player->PickupItem(ItemInfo);
+		Destroy();
+	}
 }
 

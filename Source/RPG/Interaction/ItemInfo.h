@@ -22,6 +22,8 @@ struct FItemInfo : public FTableRowBase
 {
 	GENERATED_BODY()
 
+	FItemInfo() : CurrentStack(0), MaxStack(0), ItemIndex(0), Potency(0.0f), Price(0), SellValue(0) {}
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AInteractionBase> ItemClass;
 

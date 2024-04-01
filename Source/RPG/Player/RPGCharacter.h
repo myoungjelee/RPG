@@ -5,11 +5,13 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Interface/InteractionInterface.h"
+#include "Interaction/ItemInfo.h"
 #include "RPGCharacter.generated.h"
 
 
 UCLASS(config=Game)
-class ARPGCharacter : public ACharacter
+class ARPGCharacter : public ACharacter, public IInteractionInterface
 {
 	GENERATED_BODY()
 
@@ -36,6 +38,12 @@ class ARPGCharacter : public ACharacter
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* InteractAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* MenuAction;
 
 public:
 	ARPGCharacter();
@@ -65,41 +73,8 @@ public:
 
 // 스탯 설정
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = PlayerStats, meta = (AllowPrivateAccess = "true"))
-	FText Name;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = PlayerStats, meta = (AllowPrivateAccess = "true"))
-	int32 Level;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = PlayerStats, meta = (AllowPrivateAccess = "true"))
-	float CurrentHealth;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = PlayerStats, meta = (AllowPrivateAccess = "true"))
-	float MaxHealth;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = PlayerStats, meta = (AllowPrivateAccess = "true"))
-	float CurrentMana;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = PlayerStats, meta = (AllowPrivateAccess = "true"))
-	float MaxMana;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = PlayerStats, meta = (AllowPrivateAccess = "true"))
-	float CurrentXP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = PlayerStats, meta = (AllowPrivateAccess = "true"))
-	float NextLevelXP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = PlayerStats, meta = (AllowPrivateAccess = "true"))
-	int32 Strength;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = PlayerStats, meta = (AllowPrivateAccess = "true"))
-	int32 Defense;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Equipments, meta = (AllowPrivateAccess = "true"))
-	int32 SwordModifier;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Equipments, meta = (AllowPrivateAccess = "true"))
-	int32 ShieldModifier;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UPlayerStatComponent> Stat;
 
 // HUD UI 설정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = HUD)
@@ -107,5 +82,43 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = HUD)
 	TObjectPtr<class UPlayerHUDWidget> CSHUDWidget;
+
+// Interaction 설정
+	void PickupItem(FItemInfo& ItemInfo);
+	virtual void Interact() override;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<class USphereComponent> InteractionRadius;
+
+	UFUNCTION()
+	void InteractionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void InteractionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Interaction, meta = (AllowPrivateAccess = "true"))
+	TArray<AInteractionBase*> InteractableActors;
+
+	void Interaction();
+
+// Inventory 설정
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FItemInfo> Inventory;
+
+	void ToggleMenu();
+	void OpenMenu();
+	void CloseMenu();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bMenuOpen : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 IventorySize;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class UMenuWidget> MenuWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UMenuWidget> MenuWidget;
 };
 

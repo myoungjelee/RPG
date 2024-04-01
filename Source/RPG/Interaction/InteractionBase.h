@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Interaction/ItemInfo.h"
+#include "Interface/InteractionInterface.h"
 #include "InteractionBase.generated.h"
 
 //상태 정의
@@ -21,7 +22,7 @@ enum class EItemNames : uint8
 
 
 UCLASS()
-class RPG_API AInteractionBase : public AActor
+class RPG_API AInteractionBase : public AActor , public IInteractionInterface
 {
 	GENERATED_BODY()
 	
@@ -37,12 +38,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void Interact() override;
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UStaticMeshComponent> Mesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EItemNames ItemNames;
+	EItemNames ItemName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FItemInfo ItemInfo;

@@ -9,7 +9,12 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "CharacterStat/PlayerStatComponent.h"
 #include "UI/PlayerHUDWidget.h"
+#include "Components/SphereComponent.h"
+#include "Interaction/InteractionBase.h"
+#include "UI/MenuWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -64,24 +69,33 @@ ARPGCharacter::ARPGCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
-	ConstructorHelpers::FClassFinder<UPlayerHUDWidget> HUDRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/ThirdPerson/Blueprints/HUD/WBP_PlayerHUD.WBP_PlayerHUD_C'"));
+	ConstructorHelpers::FClassFinder<UPlayerHUDWidget> HUDRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/ThirdPerson/Blueprints/Widget/WBP_PlayerHUD.WBP_PlayerHUD_C'"));
 	if (HUDRef.Class)
 	{
 		CSHUDWidgetClass = HUDRef.Class;
 	}
 
-	// 스탯 초기화
-	Level = 1;
-	CurrentHealth = 100.f;
-	MaxHealth = 100.f;
-	CurrentMana = 100.f;
-	MaxMana = 100.f;
-	CurrentXP = 0.f;
-	NextLevelXP = 50.f;
-	Strength = 10;
-	Defense = 10;
-	SwordModifier = 0;
-	ShieldModifier = 0;
+	ConstructorHelpers::FClassFinder<UMenuWidget> MenuRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/ThirdPerson/Blueprints/Widget/WBP_Menu.WBP_Menu_C'"));
+	if (MenuRef.Class)
+	{
+		MenuWidgetClass = MenuRef.Class;
+	}
+
+	// 스탯 설정 
+	Stat = CreateDefaultSubobject<UPlayerStatComponent>(TEXT("Stat"));
+
+	// 인터랙션 설정
+	InteractionRadius = CreateDefaultSubobject<USphereComponent>(TEXT("InteractionRadius"));
+	InteractionRadius->SetupAttachment(GetMesh());
+	InteractionRadius->SetSphereRadius(100.f);
+	InteractionRadius->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	InteractionRadius->OnComponentBeginOverlap.AddDynamic(this, &ARPGCharacter::InteractionBeginOverlap);
+	InteractionRadius->OnComponentEndOverlap.AddDynamic(this, &ARPGCharacter::InteractionEndOverlap);
+
+	bMenuOpen = false;
+	IventorySize = 25;
+	// 인벤토리 크기 설정
+	Inventory.SetNum(IventorySize);
 }
 
 void ARPGCharacter::BeginPlay()
@@ -120,6 +134,11 @@ void ARPGCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARPGCharacter::Look);
 
+		//인터랙션
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ARPGCharacter::Interaction);
+
+		//메뉴
+		EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Completed, this, &ARPGCharacter::OpenMenu);
 	}
 
 }
@@ -157,6 +176,110 @@ void ARPGCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ARPGCharacter::PickupItem(FItemInfo& ItemInfo)
+{
+	int32 ItemIdx = -1;
+	FItemInfo FoundItem;
+	bool bItemFound = false;
+
+	for (int32 i = 0; i < Inventory.Num(); ++i)
+	{
+		if (ItemInfo.ItemClass == Inventory[i].ItemClass && ItemInfo.MaxStack > Inventory[i].CurrentStack)
+		{
+			ItemIdx = i;
+			FoundItem = Inventory[i];
+			bItemFound = true;
+			break;
+		}
+	}
+
+	// 아이템을 찾지 못한 경우 Inventory에 추가
+	if (!bItemFound)
+	{
+		// 인벤토리에 새로운 아이템을 추가
+		ItemIdx = Inventory.Add(ItemInfo);
+		UE_LOG(LogTemp, Warning, TEXT("New!!"));
+	}
+	else
+	{
+		// 찾은 아이템의 스택을 증가
+		Inventory[ItemIdx].CurrentStack++;
+		UE_LOG(LogTemp, Warning, TEXT("ADD!!"));
+	}
+}
+
+void ARPGCharacter::Interact()
+{
+}
+
+void ARPGCharacter::InteractionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
+	{
+		AInteractionBase* InteractionBase = Cast<AInteractionBase>(OtherActor);
+		if (InteractionBase)
+		{
+			InteractableActors.AddUnique(InteractionBase);
+			UE_LOG(LogTemp, Warning, TEXT("Begin"));
+		}
+	}
+}
+
+void ARPGCharacter::InteractionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
+	{
+		AInteractionBase* InteractionBase = Cast<AInteractionBase>(OtherActor);
+		if (InteractionBase)
+		{
+			InteractableActors.Remove(InteractionBase);
+		}
+	}
+}
+
+void ARPGCharacter::Interaction()
+{
+	int32 Length = InteractableActors.Num();
+	if (Length > 0)
+	{
+		InteractableActors[0]->Interact();
+	}
+}
+
+void ARPGCharacter::OpenMenu()
+{
+	if (bMenuOpen == false)
+	{
+		if (MenuWidget == nullptr)
+		{
+			MenuWidget = CreateWidget<UMenuWidget>(GetWorld(), MenuWidgetClass);
+		}
+
+		if (MenuWidget)
+		{
+			MenuWidget->AddToViewport();
+			APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+			FInputModeGameAndUI InputMode;
+			InputMode.SetWidgetToFocus(MenuWidget->TakeWidget());
+			PlayerController->SetInputMode(InputMode);
+			PlayerController->bShowMouseCursor = true;
+			bMenuOpen = true;
+			// 슬로우 모션 걸기
+			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.25f);
+		}
+	}
+	else
+	{
+		MenuWidget->RemoveFromParent();
+		APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+		FInputModeGameOnly InputMode;
+		PlayerController->SetInputMode(InputMode);
+		PlayerController->bShowMouseCursor = false;
+		bMenuOpen = false;
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.f);
 	}
 }
 
