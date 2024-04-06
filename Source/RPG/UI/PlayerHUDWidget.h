@@ -17,6 +17,7 @@ class RPG_API UPlayerHUDWidget : public UUserWidget
 public:
 	UPlayerHUDWidget(const FObjectInitializer& ObjectInitializer);
 
+	virtual void NativeOnInitialized() override;
 	virtual void NativeConstruct() override;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
@@ -34,9 +35,22 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
 	TObjectPtr<class ARPGCharacter> Player;
 
+	UPROPERTY()
+	float MaxHp;
+
+	UPROPERTY()
+	float MaxMp;
+
+	UPROPERTY()
+	float NextLevelXP;
+
+	UPROPERTY()
+	int32 CurrentLevel;
+
 public:
-	//void UpdateHpBar(float CurrentHp, float MaxHp);
-	//void UpdateMpBar(float CurrentMp, float MaxMp);
-	//void UpdateXPBar(float CurrentXp, float NextXp);
+	void UpdateHpBar(float CurrentHp);
+	void UpdateMpBar(float CurrentMp);
+	void UpdateXPBar(float CurrentXp);
+	void UpdateLevel(float NewLevel);
 };
 

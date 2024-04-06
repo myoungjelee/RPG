@@ -29,17 +29,56 @@ void UMenuWidget::NativeConstruct()
 	BuildIventory();
 }
 
+//void UMenuWidget::BuildIventory()
+//{
+//	Row = 0;
+//	Column = 0;
+//
+//
+//	for (int32 i = 0;  i < Player->InventorySize; i++)
+//	{
+//		IconWidget = CreateWidget<UInventoryIconWidget>(GetWorld(), IconWidgetClass);
+//		if (Player->ItemListInInventory.Num() > 0)
+//		{
+//			IconWidget->ItemInfo = Player->ItemListInInventory[i];
+//		}
+//
+//		InventoryPanel->AddChildToUniformGrid(IconWidget, Row, Column);
+//
+//		Column++;
+//		if (Column >= RowSize)
+//		{
+//			Column = 0;
+//			Row++;
+//		}
+//	}
+//}
+
+
 void UMenuWidget::BuildIventory()
 {
 	Row = 0;
 	Column = 0;
 
-	for (int32 i = 0;  i < Player->IventorySize; i++)
+	int32 NumItems = Player->ItemListInInventory.Num(); // 인벤토리 아이템 리스트의 크기를 저장
+
+	for (int32 i = 0; i < Player->InventorySize; i++)
 	{
-		IconWidget = CreateWidget<UInventoryIconWidget>(GetWorld(), IconWidgetClass);
-		IconWidget->SetItemInfo(Player->Inventory[i]);
+		// 배열 인덱스가 유효한지 확인
+		if (i < NumItems)
+		{
+			IconWidget = CreateWidget<UInventoryIconWidget>(GetWorld(), IconWidgetClass);
+			IconWidget->ItemInfo = Player->ItemListInInventory[i];
+		}
+		else
+		{
+			// 인벤토리 아이템이 없을 때 처리
+			IconWidget = CreateWidget<UInventoryIconWidget>(GetWorld(), IconWidgetClass);
+			// 빈 아이템 정보 또는 다른 처리
+		}
 
 		InventoryPanel->AddChildToUniformGrid(IconWidget, Row, Column);
+
 		Column++;
 		if (Column >= RowSize)
 		{

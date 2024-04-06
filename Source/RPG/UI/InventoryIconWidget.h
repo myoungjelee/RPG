@@ -16,6 +16,7 @@ class RPG_API UInventoryIconWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
+	virtual void NativeOnInitialized()override;
 	virtual void NativeConstruct() override;
 
 public:
@@ -31,6 +32,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FItemInfo ItemInfo;
 
+
 public:
 	void SetItemInfo(const FItemInfo& NewItemInfo);
+	void SetItemQuantityVisible();
+	void OnClick();
 };

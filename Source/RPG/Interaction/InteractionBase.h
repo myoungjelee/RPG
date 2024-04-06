@@ -14,10 +14,9 @@ enum class EItemNames : uint8
 {
 	HPPotion,
 	MPPotion,
-	RustedSword,
-	IronSword,
-	WoodSheild,
-	IronShieild
+	Dagger,
+	Sword,
+	Sheild,
 };
 
 
@@ -38,15 +37,19 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void Interact() override;
+	virtual void Interact(FItemInfo& AddedItemInfo) override;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UStaticMeshComponent> Mesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
+	//TObjectPtr<class UDataTable> ItemDataTable;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	EItemNames ItemName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FItemInfo ItemInfo;
+
 };

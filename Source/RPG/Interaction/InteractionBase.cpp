@@ -14,11 +14,17 @@ AInteractionBase::AInteractionBase()
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Item"));
 
-	ConstructorHelpers::FObjectFinder<UStaticMesh> MeshRef(TEXT("/Script/Engine.StaticMesh'/Game/Infinity_Blade_Assets/Meshes/Props/SM_TreasureBags02.SM_TreasureBags02'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshRef(TEXT("/Script/Engine.StaticMesh'/Game/Infinity_Blade_Assets/Meshes/Props/SM_TreasureBags02.SM_TreasureBags02'"));
 	if (MeshRef.Object)
 	{
 		Mesh->SetStaticMesh(MeshRef.Object);
 	}
+
+	//static ConstructorHelpers::FObjectFinder<UDataTable> DataTableRef(TEXT("/Script/Engine.DataTable'/Game/ThirdPerson/Blueprints/Interaction/DT_ItemInfo.DT_ItemInfo'"));
+	//if (DataTableRef.Object)
+	//{
+	//	ItemDataTable = DataTableRef.Object;
+	//}
 }
 
 // Called when the game starts or when spawned
@@ -35,12 +41,12 @@ void AInteractionBase::Tick(float DeltaTime)
 
 }
 
-void AInteractionBase::Interact()
+void AInteractionBase::Interact(FItemInfo& AddedItemInfo)
 {
 	ARPGCharacter* Player = Cast<ARPGCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 	if (Player)
 	{
-		Player->PickupItem(ItemInfo);
+		Player->PickupItem(AddedItemInfo);
 		Destroy();
 	}
 }

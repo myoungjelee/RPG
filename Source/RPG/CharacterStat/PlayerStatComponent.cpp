@@ -12,10 +12,10 @@ UPlayerStatComponent::UPlayerStatComponent()
 
 	// 스탯 초기화
 	Level = 1;
-	MaxHealth = 100.f;
-	CurrentHealth = MaxHealth;
-	MaxMana = 100.f;
-	CurrentMana = MaxMana;
+	MaxHp = 100.f;
+	CurrentHp = MaxHp;
+	MaxMp = 100.f;
+	CurrentMp = MaxMp;
 	CurrentXP = 0.f;
 	NextLevelXP = 50.f;
 	Strength = 10;
@@ -24,14 +24,21 @@ UPlayerStatComponent::UPlayerStatComponent()
 	ShieldModifier = 0;
 }
 
-
 // Called when the game starts
 void UPlayerStatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
-	
+	FTimerHandle WaitHandle;
+	float WaitTime = 0.1; //시간을 설정하고
+	GetWorld()->GetTimerManager().SetTimer(WaitHandle, FTimerDelegate::CreateLambda([&]()
+		{
+			SetHp(MaxHp);
+			SetMp(MaxMp);
+			SetXp(CurrentXP);
+			SetLevel(Level);
+		}), WaitTime, false);
+
 }
 
 
@@ -41,5 +48,28 @@ void UPlayerStatComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+void UPlayerStatComponent::SetHp(float NewHp)
+{
+	CurrentHp = FMath::Clamp(NewHp, 0, MaxHp);
+	OnHpChanged.Broadcast(CurrentHp);
+}
+
+void UPlayerStatComponent::SetMp(float NewMp)
+{
+	CurrentMp = FMath::Clamp(NewMp, 0, MaxMp);
+	OnMpChanged.Broadcast(CurrentMp);
+}
+
+void UPlayerStatComponent::SetXp(float NewXp)
+{
+	CurrentXP = FMath::Clamp(NewXp, 0, NextLevelXP);
+	OnXpChanged.Broadcast(CurrentXP);
+}
+
+void UPlayerStatComponent::SetLevel(float NewLevel)
+{
+	OnLevelChanged.Broadcast(NewLevel);
 }
 

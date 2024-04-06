@@ -14,7 +14,10 @@
 #include "Components/SphereComponent.h"
 #include "Interaction/InteractionBase.h"
 #include "UI/MenuWidget.h"
+#include "Components/UniformGridPanel.h"
 #include "Kismet/GameplayStatics.h"
+#include "InputMappingContext.h"
+#include "Animation/AnimInstance.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,10 +72,55 @@ ARPGCharacter::ARPGCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
+	// 인풋 설정
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> IMCRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/ThirdPerson/Input/IMC_Default.IMC_Default'"));
+	if (IMCRef.Object)
+	{
+		DefaultMappingContext = IMCRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> IAJumpRef(TEXT("/Script/EnhancedInput.InputAction'/Game/ThirdPerson/Input/Actions/IA_Jump.IA_Jump'"));
+	if (IAJumpRef.Object)
+	{
+		JumpAction = IAJumpRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> IAJMoveRef(TEXT("/Script/EnhancedInput.InputAction'/Game/ThirdPerson/Input/Actions/IA_Move.IA_Move'"));
+	if (IAJMoveRef.Object)
+	{
+		MoveAction = IAJMoveRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> IAJLookRef(TEXT("/Script/EnhancedInput.InputAction'/Game/ThirdPerson/Input/Actions/IA_Look.IA_Look'"));
+	if (IAJLookRef.Object)
+	{
+		LookAction = IAJLookRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> IAJInteractRef(TEXT("/Script/EnhancedInput.InputAction'/Game/ThirdPerson/Input/Actions/IA_Interact.IA_Interact'"));
+	if (IAJInteractRef.Object)
+	{
+		InteractAction = IAJInteractRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> IAMenuRef(TEXT("/Script/EnhancedInput.InputAction'/Game/ThirdPerson/Input/Actions/IA_Menu.IA_Menu'"));
+	if (IAMenuRef.Object)
+	{
+		MenuAction = IAMenuRef.Object;
+	}
+
+	// 애니메이션 설정
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Script/Engine.AnimBlueprint'/Game/ThirdPerson/Blueprints/Character/Player/ABP_PlayerAnim.ABP_PlayerAnim_C'"));
+	if (AnimRef.Class)
+	{
+		AnimInstance = AnimRef.Class;
+	}
+
+	// 위젯 설정
 	ConstructorHelpers::FClassFinder<UPlayerHUDWidget> HUDRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/ThirdPerson/Blueprints/Widget/WBP_PlayerHUD.WBP_PlayerHUD_C'"));
 	if (HUDRef.Class)
 	{
-		CSHUDWidgetClass = HUDRef.Class;
+		HUDWidgetClass = HUDRef.Class;
 	}
 
 	ConstructorHelpers::FClassFinder<UMenuWidget> MenuRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/ThirdPerson/Blueprints/Widget/WBP_Menu.WBP_Menu_C'"));
@@ -93,9 +141,9 @@ ARPGCharacter::ARPGCharacter()
 	InteractionRadius->OnComponentEndOverlap.AddDynamic(this, &ARPGCharacter::InteractionEndOverlap);
 
 	bMenuOpen = false;
-	IventorySize = 25;
+
 	// 인벤토리 크기 설정
-	Inventory.SetNum(IventorySize);
+	InventorySize = 25;
 }
 
 void ARPGCharacter::BeginPlay()
@@ -112,8 +160,10 @@ void ARPGCharacter::BeginPlay()
 		}
 	}
 
-	CSHUDWidget = CreateWidget<UPlayerHUDWidget>(GetWorld(), CSHUDWidgetClass);
-	CSHUDWidget->AddToViewport();
+	HUDWidget = CreateWidget<UPlayerHUDWidget>(GetWorld(), HUDWidgetClass);
+	HUDWidget->AddToViewport();
+
+	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, FString::FromInt(ItemListInInventory.Num()));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -135,10 +185,10 @@ void ARPGCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARPGCharacter::Look);
 
 		//인터랙션
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ARPGCharacter::Interaction);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ARPGCharacter::Interaction);
 
 		//메뉴
-		EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Completed, this, &ARPGCharacter::OpenMenu);
+		EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Started, this, &ARPGCharacter::OpenMenu);
 	}
 
 }
@@ -179,18 +229,18 @@ void ARPGCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void ARPGCharacter::PickupItem(FItemInfo& ItemInfo)
+void ARPGCharacter::PickupItem(FItemInfo& PickupItemInfo)
 {
 	int32 ItemIdx = -1;
 	FItemInfo FoundItem;
 	bool bItemFound = false;
 
-	for (int32 i = 0; i < Inventory.Num(); ++i)
+	for (int32 i = 0; i < ItemListInInventory.Num(); ++i)
 	{
-		if (ItemInfo.ItemClass == Inventory[i].ItemClass && ItemInfo.MaxStack > Inventory[i].CurrentStack)
+		if (PickupItemInfo.ItemClass == ItemListInInventory[i].ItemClass && PickupItemInfo.MaxStack > ItemListInInventory[i].CurrentStack)
 		{
 			ItemIdx = i;
-			FoundItem = Inventory[i];
+			FoundItem = ItemListInInventory[i];
 			bItemFound = true;
 			break;
 		}
@@ -200,30 +250,36 @@ void ARPGCharacter::PickupItem(FItemInfo& ItemInfo)
 	if (!bItemFound)
 	{
 		// 인벤토리에 새로운 아이템을 추가
-		ItemIdx = Inventory.Add(ItemInfo);
+		ItemListInInventory.Add(PickupItemInfo);
 		UE_LOG(LogTemp, Warning, TEXT("New!!"));
 	}
 	else
 	{
 		// 찾은 아이템의 스택을 증가
-		Inventory[ItemIdx].CurrentStack++;
+		ItemListInInventory[ItemIdx].CurrentStack++;
+		bItemFound = false;
 		UE_LOG(LogTemp, Warning, TEXT("ADD!!"));
 	}
-}
 
-void ARPGCharacter::Interact()
-{
+	if (MenuWidget)
+	{
+		MenuWidget->InventoryPanel->ClearChildren();
+		MenuWidget->BuildIventory();
+	}
 }
 
 void ARPGCharacter::InteractionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
 	{
-		AInteractionBase* InteractionBase = Cast<AInteractionBase>(OtherActor);
-		if (InteractionBase)
+		AInteractionBase* InteractableActor = Cast<AInteractionBase>(OtherActor);
+		if (InteractableActor)
 		{
-			InteractableActors.AddUnique(InteractionBase);
-			UE_LOG(LogTemp, Warning, TEXT("Begin"));
+			InteractableActors.AddUnique(InteractableActor);
+			if (InteractableActors.Num() > 0)
+			{
+				InteractableActors[0]->Mesh->SetRenderCustomDepth(true);		
+			}
 		}
 	}
 }
@@ -232,20 +288,26 @@ void ARPGCharacter::InteractionEndOverlap(UPrimitiveComponent* OverlappedCompone
 {
 	if (OtherActor->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
 	{
-		AInteractionBase* InteractionBase = Cast<AInteractionBase>(OtherActor);
-		if (InteractionBase)
+		AInteractionBase* InteractableActor = Cast<AInteractionBase>(OtherActor);
+		if (InteractableActor)
 		{
-			InteractableActors.Remove(InteractionBase);
+			InteractableActor->Mesh->SetRenderCustomDepth(false);
+			InteractableActors.Remove(InteractableActor);
 		}
 	}
 }
 
 void ARPGCharacter::Interaction()
 {
-	int32 Length = InteractableActors.Num();
-	if (Length > 0)
+	if (InteractableActors.Num() > 0)
 	{
-		InteractableActors[0]->Interact();
+		InteractableActors[0]->Interact(InteractableActors[0]->ItemInfo);
+		
+		//다시 배열체크해서 색상변경
+		if (InteractableActors.Num() > 0)
+		{
+			InteractableActors[0]->Mesh->SetRenderCustomDepth(true);
+		}
 	}
 }
 

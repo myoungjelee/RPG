@@ -22,8 +22,17 @@ struct FItemInfo : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	FItemInfo() : CurrentStack(0), MaxStack(0), ItemIndex(0), Potency(0.0f), Price(0), SellValue(0) {}
+	FItemInfo() : ItemClass(nullptr), ItemName(FText::FromString(TEXT("None"))), ItemImage(nullptr), CurrentStack(0), MaxStack(0), ItemIndex(0), Potency(0.0f), Price(0), SellValue(0)
+	{
+		static ConstructorHelpers::FObjectFinder<UTexture2D> ItemImageRef(TEXT("/Script/Engine.Texture2D'/Game/InfinityBladeGrassLands/Effects/FX_Textures/Tile/T_Black_32.T_Black_32'"));
+		if (ItemImageRef.Object)
+		{
+			ItemImage = ItemImageRef.Object;
+		}
+	}
 	
+	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AInteractionBase> ItemClass;
 

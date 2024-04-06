@@ -20,7 +20,7 @@ public:
 	virtual void NativeConstruct() override;
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<class ARPGCharacter> Player;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -43,9 +43,4 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 RowSize;
-	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-	//TObjectPtr<class UTextBlock> ItemName;
-
-	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
-	//TObjectPtr<class UTextBlock> ItemQuantity;
 };

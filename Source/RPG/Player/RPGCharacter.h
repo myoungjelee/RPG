@@ -11,7 +11,7 @@
 
 
 UCLASS(config=Game)
-class ARPGCharacter : public ACharacter, public IInteractionInterface
+class ARPGCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -71,6 +71,10 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+// 애니메이션 설정
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Anim)
+	TSubclassOf<class UAnimInstance> AnimInstance;
+
 // 스탯 설정
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat, Meta = (AllowPrivateAccess = "true"))
@@ -78,14 +82,16 @@ public:
 
 // HUD UI 설정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = HUD)
-	TSubclassOf<class UPlayerHUDWidget> CSHUDWidgetClass;
+	TSubclassOf<class UPlayerHUDWidget> HUDWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = HUD)
-	TObjectPtr<class UPlayerHUDWidget> CSHUDWidget;
+	TObjectPtr<class UPlayerHUDWidget> HUDWidget;
 
 // Interaction 설정
-	void PickupItem(FItemInfo& ItemInfo);
-	virtual void Interact() override;
+	UPROPERTY(VisibleAnywhere, Category = "Character | Interaction")
+	TScriptInterface<IInteractionInterface> TargetInteractable;
+
+	void PickupItem(FItemInfo& PickupItemInfo);
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<class USphereComponent> InteractionRadius;
@@ -103,7 +109,8 @@ public:
 
 // Inventory 설정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FItemInfo> Inventory;
+	TArray<FItemInfo> ItemListInInventory;
+
 
 	void ToggleMenu();
 	void OpenMenu();
@@ -113,12 +120,24 @@ public:
 	uint8 bMenuOpen : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 IventorySize;
+	int32 InventorySize;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class UMenuWidget> MenuWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UMenuWidget> MenuWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FItemInfo ItemSelected;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FItemInfo SwordInfo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FItemInfo ShieldInfo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FItemInfo AccInfo;
 };
 
