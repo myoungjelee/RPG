@@ -4,7 +4,7 @@
 #include "UI/InventoryIconWidget.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
-#include "Player/RPGCharacter.h"
+#include "Player/RPGPlayer.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -32,7 +32,7 @@ void UInventoryIconWidget::NativeConstruct()
 	Btn->SetStyle(WidgetStyle);
 
 	// Btn 클릭설정
-	Btn->OnPressed.AddDynamic(this, &UInventoryIconWidget::OnClick);
+	Btn->OnClicked.AddDynamic(this, &UInventoryIconWidget::OnClick);
 
 	// 아이템 이름, 수량 설정
 	ItemName->SetText(ItemInfo.ItemName);
@@ -59,7 +59,7 @@ void UInventoryIconWidget::SetItemQuantityVisible()
 
 void UInventoryIconWidget::OnClick()
 {
-	ARPGCharacter* Player = Cast<ARPGCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	ARPGPlayer* Player = Cast<ARPGPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
 	Player->ItemSelected = ItemInfo;
 

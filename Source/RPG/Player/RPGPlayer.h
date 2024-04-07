@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -7,11 +7,10 @@
 #include "InputActionValue.h"
 #include "Interface/InteractionInterface.h"
 #include "Interaction/ItemInfo.h"
-#include "RPGCharacter.generated.h"
+#include "RPGPlayer.generated.h"
 
-
-UCLASS(config=Game)
-class ARPGCharacter : public ACharacter
+UCLASS()
+class RPG_API ARPGPlayer : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -22,7 +21,7 @@ class ARPGCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
-	
+
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputMappingContext* DefaultMappingContext;
@@ -46,8 +45,8 @@ class ARPGCharacter : public ACharacter
 	class UInputAction* MenuAction;
 
 public:
-	ARPGCharacter();
-	
+	ARPGPlayer();
+
 
 protected:
 
@@ -56,12 +55,12 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
+
 
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
 	// To add mapping context
 	virtual void BeginPlay();
 
@@ -71,23 +70,23 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-// 애니메이션 설정
+	// 애니메이션 설정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Anim)
 	TSubclassOf<class UAnimInstance> AnimInstance;
 
-// 스탯 설정
+	// 스탯 설정
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UPlayerStatComponent> Stat;
 
-// HUD UI 설정
+	// HUD UI 설정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = HUD)
 	TSubclassOf<class UPlayerHUDWidget> HUDWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = HUD)
 	TObjectPtr<class UPlayerHUDWidget> HUDWidget;
 
-// Interaction 설정
+	// Interaction 설정
 	UPROPERTY(VisibleAnywhere, Category = "Character | Interaction")
 	TScriptInterface<IInteractionInterface> TargetInteractable;
 
@@ -107,7 +106,7 @@ public:
 
 	void Interaction();
 
-// Inventory 설정
+	// Inventory 설정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FItemInfo> ItemListInInventory;
 
@@ -139,5 +138,5 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FItemInfo AccInfo;
-};
 
+};

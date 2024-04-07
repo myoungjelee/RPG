@@ -2,7 +2,7 @@
 
 
 #include "PlayerAnimInstance.h"
-#include "Player/RPGCharacter.h"
+#include "Player/RPGPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 UPlayerAnimInstance::UPlayerAnimInstance()
@@ -11,10 +11,10 @@ UPlayerAnimInstance::UPlayerAnimInstance()
 
 void UPlayerAnimInstance::NativeInitializeAnimation()
 {
-	//Owner = Cast<ARPGCharacter>(GetOwningActor());
+	//Owner = Cast<ARPGPlayer>(GetOwningActor());
 	
 	APawn* Pawn = TryGetPawnOwner();
-	Owner = Cast<ARPGCharacter>(Pawn);
+	Owner = Cast<ARPGPlayer>(Pawn);
 	if (Owner)
 	{
 		Movement = Owner->GetCharacterMovement();

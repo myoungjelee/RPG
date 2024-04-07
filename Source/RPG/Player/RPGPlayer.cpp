@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "RPGCharacter.h"
+#include "Player/RPGPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -21,13 +21,13 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-// ARPGCharacter
+// ARPGPlayer
 
-ARPGCharacter::ARPGCharacter()
+ARPGPlayer::ARPGPlayer()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(26.f, 96.0f);
-		
+
 	// 캐릭터 메시 설정
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.000856f, -96.f));
 	GetMesh()->SetRelativeRotation(FRotator(0.f, 270.f, 0.f));
@@ -113,7 +113,7 @@ ARPGCharacter::ARPGCharacter()
 	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Script/Engine.AnimBlueprint'/Game/ThirdPerson/Blueprints/Character/Player/ABP_PlayerAnim.ABP_PlayerAnim_C'"));
 	if (AnimRef.Class)
 	{
-		AnimInstance = AnimRef.Class;
+		GetMesh()->SetAnimInstanceClass(AnimRef.Class);
 	}
 
 	// 위젯 설정
@@ -137,8 +137,8 @@ ARPGCharacter::ARPGCharacter()
 	InteractionRadius->SetupAttachment(GetMesh());
 	InteractionRadius->SetSphereRadius(100.f);
 	InteractionRadius->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	InteractionRadius->OnComponentBeginOverlap.AddDynamic(this, &ARPGCharacter::InteractionBeginOverlap);
-	InteractionRadius->OnComponentEndOverlap.AddDynamic(this, &ARPGCharacter::InteractionEndOverlap);
+	InteractionRadius->OnComponentBeginOverlap.AddDynamic(this, &ARPGPlayer::InteractionBeginOverlap);
+	InteractionRadius->OnComponentEndOverlap.AddDynamic(this, &ARPGPlayer::InteractionEndOverlap);
 
 	bMenuOpen = false;
 
@@ -146,7 +146,7 @@ ARPGCharacter::ARPGCharacter()
 	InventorySize = 25;
 }
 
-void ARPGCharacter::BeginPlay()
+void ARPGPlayer::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
@@ -169,31 +169,31 @@ void ARPGCharacter::BeginPlay()
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void ARPGCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+void ARPGPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+
 		//Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		//Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARPGCharacter::Move);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARPGPlayer::Move);
 
 		//Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARPGCharacter::Look);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARPGPlayer::Look);
 
 		//인터랙션
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ARPGCharacter::Interaction);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ARPGPlayer::Interaction);
 
 		//메뉴
-		EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Started, this, &ARPGCharacter::OpenMenu);
+		EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Started, this, &ARPGPlayer::OpenMenu);
 	}
 
 }
 
-void ARPGCharacter::Move(const FInputActionValue& Value)
+void ARPGPlayer::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
@@ -206,7 +206,7 @@ void ARPGCharacter::Move(const FInputActionValue& Value)
 
 		// get forward vector
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
+
 		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -216,7 +216,7 @@ void ARPGCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
-void ARPGCharacter::Look(const FInputActionValue& Value)
+void ARPGPlayer::Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
@@ -229,7 +229,7 @@ void ARPGCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void ARPGCharacter::PickupItem(FItemInfo& PickupItemInfo)
+void ARPGPlayer::PickupItem(FItemInfo& PickupItemInfo)
 {
 	int32 ItemIdx = -1;
 	FItemInfo FoundItem;
@@ -268,7 +268,7 @@ void ARPGCharacter::PickupItem(FItemInfo& PickupItemInfo)
 	}
 }
 
-void ARPGCharacter::InteractionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ARPGPlayer::InteractionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
 	{
@@ -278,13 +278,13 @@ void ARPGCharacter::InteractionBeginOverlap(UPrimitiveComponent* OverlappedCompo
 			InteractableActors.AddUnique(InteractableActor);
 			if (InteractableActors.Num() > 0)
 			{
-				InteractableActors[0]->Mesh->SetRenderCustomDepth(true);		
+				InteractableActors[0]->Mesh->SetRenderCustomDepth(true);
 			}
 		}
 	}
 }
 
-void ARPGCharacter::InteractionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void ARPGPlayer::InteractionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OtherActor->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
 	{
@@ -297,12 +297,12 @@ void ARPGCharacter::InteractionEndOverlap(UPrimitiveComponent* OverlappedCompone
 	}
 }
 
-void ARPGCharacter::Interaction()
+void ARPGPlayer::Interaction()
 {
 	if (InteractableActors.Num() > 0)
 	{
 		InteractableActors[0]->Interact(InteractableActors[0]->ItemInfo);
-		
+
 		//다시 배열체크해서 색상변경
 		if (InteractableActors.Num() > 0)
 		{
@@ -311,7 +311,7 @@ void ARPGCharacter::Interaction()
 	}
 }
 
-void ARPGCharacter::OpenMenu()
+void ARPGPlayer::OpenMenu()
 {
 	if (bMenuOpen == false)
 	{

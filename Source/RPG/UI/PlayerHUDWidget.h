@@ -33,7 +33,7 @@ public:
 	TObjectPtr<class UTextBlock> Level;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
-	TObjectPtr<class ARPGCharacter> Player;
+	TObjectPtr<class ARPGPlayer> Player;
 
 	UPROPERTY()
 	float MaxHp;

@@ -20,13 +20,13 @@ public:
 	virtual void NativeConstruct() override;
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<class ARPGCharacter> Player;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class ARPGPlayer> Player;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TSubclassOf<class UInventoryIconWidget> IconWidgetClass;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UInventoryIconWidget> IconWidget;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))

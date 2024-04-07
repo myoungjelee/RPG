@@ -22,7 +22,7 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;\
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
-	TObjectPtr<class ARPGCharacter> Owner;
+	TObjectPtr<class ARPGPlayer> Owner;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
 	TObjectPtr<class UCharacterMovementComponent> Movement;

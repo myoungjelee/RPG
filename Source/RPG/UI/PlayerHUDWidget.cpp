@@ -4,7 +4,7 @@
 #include "UI/PlayerHUDWidget.h"
 #include <Components/TextBlock.h>
 #include <Components/ProgressBar.h>
-#include "Player/RPGCharacter.h"
+#include "Player/RPGPlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "CharacterStat/PlayerStatComponent.h"
 
@@ -28,7 +28,7 @@ void UPlayerHUDWidget::NativeConstruct()
 	XPBar = Cast<UProgressBar>(GetWidgetFromName(TEXT("XPBar")));
 	Level = Cast<UTextBlock>(GetWidgetFromName(TEXT("Level")));
 
-	Player = Cast<ARPGCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	Player = Cast<ARPGPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
 	MaxHp = Player->Stat->MaxHp;
 	MaxMp = Player->Stat->MaxMp;

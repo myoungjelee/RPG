@@ -2,7 +2,7 @@
 
 
 #include "UI/MenuWidget.h"
-#include "Player/RPGCharacter.h"
+#include "Player/RPGPlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/InventoryIconWidget.h"
 #include "Components/UniformGridPanel.h"
@@ -22,7 +22,7 @@ void UMenuWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	Player = Cast<ARPGCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	Player = Cast<ARPGPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
 	InventoryPanel = Cast<UUniformGridPanel>(GetWidgetFromName(TEXT("InventoryPanel")));
 	
