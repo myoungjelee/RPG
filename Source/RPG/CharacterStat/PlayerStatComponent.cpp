@@ -29,15 +29,15 @@ void UPlayerStatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FTimerHandle WaitHandle;
-	float WaitTime = 0.1; //시간을 설정하고
-	GetWorld()->GetTimerManager().SetTimer(WaitHandle, FTimerDelegate::CreateLambda([&]()
+	FTimerHandle DelayHandle;
+	float DelayTime = 0.1; //시간을 설정하고
+	GetWorld()->GetTimerManager().SetTimer(DelayHandle, FTimerDelegate::CreateLambda([&]()
 		{
 			SetHp(CurrentHp);
 			SetMp(CurrentMp);
 			SetXp(CurrentXP);
 			SetLevel(Level);
-		}), WaitTime, false);
+		}), DelayTime, false);
 
 }
 

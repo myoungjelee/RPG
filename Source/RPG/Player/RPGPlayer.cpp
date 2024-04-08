@@ -206,7 +206,7 @@ void ARPGPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(DrawSwordAction, ETriggerEvent::Completed, this, &ARPGPlayer::DrawSword);
 
 		//공격
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ARPGPlayer::Attack);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ARPGPlayer::Attack);
 	}
 
 }
@@ -611,13 +611,20 @@ void ARPGPlayer::AdjustSpeed(float Speed)
 
 void ARPGPlayer::ResetAttack()
 {
-	bCanAttack = true;
 	bAttackSaved = false;
 	AttackCombo = 0;
 	bAttack1 = false;
 	bAttack2 = false;
 	bAttack3 = false;
 	AdjustSpeed(450.0f);
+
+	FTimerHandle DelayHandle;
+	float DelayTime = 0.25; //시간을 설정하고
+	GetWorld()->GetTimerManager().SetTimer(DelayHandle, FTimerDelegate::CreateLambda([&]()
+		{
+			bCanAttack = true;
+
+		}), DelayTime, false);
 }
 
 
