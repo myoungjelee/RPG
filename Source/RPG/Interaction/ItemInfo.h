@@ -62,4 +62,11 @@ struct FItemInfo : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 SellValue;
+
+
+	// 두 FItemInfo 객체의 이름과 유형이 동일하면 true를 반환(이걸 해줘야 아이템끼리 같은지 같지 않은지 비교가능)
+	bool operator==(const FItemInfo& Other) const
+	{
+		return (ItemName.EqualTo(Other.ItemName)) && (ItemType == Other.ItemType);
+	}
 };

@@ -90,7 +90,7 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Character | Interaction")
 	TScriptInterface<IInteractionInterface> TargetInteractable;
 
-	void PickupItem(FItemInfo& PickupItemInfo);
+	void PickupItem(const FItemInfo& PickupItemInfo);
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<class USphereComponent> InteractionRadius;
@@ -115,6 +115,14 @@ public:
 	void OpenMenu();
 	void CloseMenu();
 
+	UFUNCTION(BlueprintCallable)
+	void UseItem(const FItemInfo& ItemInfo);
+	void RemoveItem(const FItemInfo& ItemInfo);
+	void RestoreHP(float RestoreAmount);
+	void RestoreMP(float RestoreAmount);
+	void ChangeSword(const FItemInfo& ItemInfo);
+	void ChangeShield(const FItemInfo& ItemInfo);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 bMenuOpen : 1;
 
@@ -137,6 +145,6 @@ public:
 	FItemInfo ShieldInfo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FItemInfo AccInfo;
+	FItemInfo AccessoryInfo;
 
 };

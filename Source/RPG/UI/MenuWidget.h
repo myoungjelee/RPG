@@ -32,8 +32,43 @@ public:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	TObjectPtr<class UUniformGridPanel> InventoryPanel;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UButton> Btn_Use;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UButton> Btn_Drop;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UButton> Btn_Sword;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UButton> Btn_Shield;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UButton> Btn_Arrow;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UButton> Btn_Bow;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UButton> Btn_Accessory;
+
 	UFUNCTION()
 	void BuildIventory();
+
+	UFUNCTION()
+	void BtnUseClick();
+
+	UFUNCTION()
+	void BtnSwordClick();
+
+	UFUNCTION()
+	void BtnShieldClick();
+
+	UFUNCTION()
+	void BtnAccClick();
+
+	void CheckGear();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Row;

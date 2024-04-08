@@ -34,7 +34,9 @@ public:
 
 
 public:
-	void SetItemInfo(const FItemInfo& NewItemInfo);
+	//void SetItemInfo(const FItemInfo& NewItemInfo);
 	void SetItemQuantityVisible();
-	void OnClick();
+
+	UFUNCTION()
+	void BtnClick();
 };

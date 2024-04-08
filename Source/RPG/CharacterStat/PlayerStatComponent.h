@@ -6,10 +6,10 @@
 #include "Components/ActorComponent.h"
 #include "PlayerStatComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam (FOnHpChangedDelegate, float CurrentHp);
-DECLARE_MULTICAST_DELEGATE_OneParam (FOnMpChangedDelegate, float CurrentMp);
-DECLARE_MULTICAST_DELEGATE_OneParam (FOnXpChangedDelegate, float CurrentXp);
-DECLARE_MULTICAST_DELEGATE_OneParam (FOnLevelChangedDelegate, float CurrentLevel);
+//DECLARE_MULTICAST_DELEGATE_OneParam (FOnHpChangedDelegate, float CurrentHp);
+//DECLARE_MULTICAST_DELEGATE_OneParam (FOnMpChangedDelegate, float CurrentMp);
+//DECLARE_MULTICAST_DELEGATE_OneParam (FOnXpChangedDelegate, float CurrentXp);
+//DECLARE_MULTICAST_DELEGATE_OneParam (FOnLevelChangedDelegate, float CurrentLevel);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RPG_API UPlayerStatComponent : public UActorComponent
@@ -66,10 +66,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Equipments, meta = (AllowPrivateAccess = "true"))
 	int32 ShieldModifier;
 
-	FOnHpChangedDelegate OnHpChanged;
-	FOnMpChangedDelegate OnMpChanged;
-	FOnXpChangedDelegate OnXpChanged;
-	FOnLevelChangedDelegate OnLevelChanged;
+	//FOnHpChangedDelegate OnHpChanged;
+	//FOnMpChangedDelegate OnMpChanged;
+	//FOnXpChangedDelegate OnXpChanged;
+	//FOnLevelChangedDelegate OnLevelChanged;
 
 	void SetHp(float NewHp);
 	void SetMp(float NewMp);

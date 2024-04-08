@@ -32,7 +32,7 @@ void UInventoryIconWidget::NativeConstruct()
 	Btn->SetStyle(WidgetStyle);
 
 	// Btn 클릭설정
-	Btn->OnClicked.AddDynamic(this, &UInventoryIconWidget::OnClick);
+	Btn->OnClicked.AddDynamic(this, &UInventoryIconWidget::BtnClick);
 
 	// 아이템 이름, 수량 설정
 	ItemName->SetText(ItemInfo.ItemName);
@@ -40,10 +40,10 @@ void UInventoryIconWidget::NativeConstruct()
 	SetItemQuantityVisible();
 }
 
-void UInventoryIconWidget::SetItemInfo(const FItemInfo& NewItemInfo)
-{
-	ItemInfo = NewItemInfo;
-}
+//void UInventoryIconWidget::SetItemInfo(const FItemInfo& NewItemInfo)
+//{
+//	ItemInfo = NewItemInfo;
+//}
 
 void UInventoryIconWidget::SetItemQuantityVisible()
 {
@@ -57,13 +57,18 @@ void UInventoryIconWidget::SetItemQuantityVisible()
 	}
 }
 
-void UInventoryIconWidget::OnClick()
+void UInventoryIconWidget::BtnClick()
 {
 	ARPGPlayer* Player = Cast<ARPGPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
-	Player->ItemSelected = ItemInfo;
-
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Cilck!!"));
+	if (Player->ItemSelected == ItemInfo)
+	{
+		Player->UseItem(Player->ItemSelected);
+	}
+	else
+	{
+		Player->ItemSelected = ItemInfo;
+	}
 }
 
 

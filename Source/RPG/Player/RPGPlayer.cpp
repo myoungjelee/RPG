@@ -162,8 +162,6 @@ void ARPGPlayer::BeginPlay()
 
 	HUDWidget = CreateWidget<UPlayerHUDWidget>(GetWorld(), HUDWidgetClass);
 	HUDWidget->AddToViewport();
-
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, FString::FromInt(ItemListInInventory.Num()));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -229,7 +227,7 @@ void ARPGPlayer::Look(const FInputActionValue& Value)
 	}
 }
 
-void ARPGPlayer::PickupItem(FItemInfo& PickupItemInfo)
+void ARPGPlayer::PickupItem(const FItemInfo& PickupItemInfo)
 {
 	int32 ItemIdx = -1;
 	FItemInfo FoundItem;
@@ -342,6 +340,106 @@ void ARPGPlayer::OpenMenu()
 		PlayerController->bShowMouseCursor = false;
 		bMenuOpen = false;
 		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.f);
+	}
+}
+
+void ARPGPlayer::UseItem(const FItemInfo& ItemInfo)
+{
+	switch (ItemInfo.ItemType)
+	{
+	case EItemType::None:
+		break;
+	case EItemType::HPItem:
+		RestoreHP(ItemInfo.Potency);
+		RemoveItem(ItemInfo);
+		break;
+	case EItemType::MPItem:
+		RestoreMP(ItemInfo.Potency);
+		RemoveItem(ItemInfo);
+		break; 
+	case EItemType::Sword:
+		ChangeSword(ItemInfo);
+		RemoveItem(ItemInfo);
+		break; 
+	case EItemType::Shield:
+		ChangeShield(ItemInfo);
+		RemoveItem(ItemInfo);
+		break; 
+	case EItemType::KeyItem:
+		break;
+	case EItemType::Resources:
+		break;
+	}
+}
+
+void ARPGPlayer::RemoveItem(const FItemInfo& ItemInfo)
+{
+	int32 FindItemIdx = ItemListInInventory.Find(ItemInfo);
+
+	if (ItemListInInventory[FindItemIdx].CurrentStack <= 1)
+	{
+		ItemListInInventory.RemoveAt(FindItemIdx);
+		// ItemSelected 초기화 하기
+		ItemSelected = FItemInfo();
+	}
+	else
+	{
+		ItemListInInventory[FindItemIdx].CurrentStack -= 1;
+	}
+
+	if (MenuWidget)
+	{
+		MenuWidget->InventoryPanel->ClearChildren();
+		MenuWidget->BuildIventory();
+	}
+}
+
+void ARPGPlayer::RestoreHP(float RestoreAmount)
+{
+	Stat->CurrentHp += RestoreAmount;
+	if (Stat->CurrentHp >= Stat->MaxHp)
+	{
+		Stat->CurrentHp = Stat->MaxHp;
+	}
+}
+
+void ARPGPlayer::RestoreMP(float RestoreAmount)
+{
+	Stat->CurrentMp += RestoreAmount;
+	if (Stat->CurrentMp >= Stat->MaxMp)
+	{
+		Stat->CurrentMp = Stat->MaxMp;
+	}
+}
+
+void ARPGPlayer::ChangeSword(const FItemInfo& ItemInfo)
+{
+	if (SwordInfo.ItemClass)
+	{
+		PickupItem(SwordInfo);
+	}
+	
+	SwordInfo = ItemInfo;
+
+	if (MenuWidget)
+	{
+		MenuWidget->CheckGear();
+	}
+}
+
+void ARPGPlayer::ChangeShield(const FItemInfo& ItemInfo)
+{
+	if (ShieldInfo.ItemClass)
+	{
+		PickupItem(ShieldInfo);
+	}
+
+	ShieldInfo = ItemInfo;
+
+
+	if (MenuWidget)
+	{
+		MenuWidget->CheckGear();
 	}
 }
 

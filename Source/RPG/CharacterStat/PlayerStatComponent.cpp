@@ -33,8 +33,8 @@ void UPlayerStatComponent::BeginPlay()
 	float WaitTime = 0.1; //시간을 설정하고
 	GetWorld()->GetTimerManager().SetTimer(WaitHandle, FTimerDelegate::CreateLambda([&]()
 		{
-			SetHp(MaxHp);
-			SetMp(MaxMp);
+			SetHp(CurrentHp);
+			SetMp(CurrentMp);
 			SetXp(CurrentXP);
 			SetLevel(Level);
 		}), WaitTime, false);
@@ -53,23 +53,23 @@ void UPlayerStatComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 void UPlayerStatComponent::SetHp(float NewHp)
 {
 	CurrentHp = FMath::Clamp(NewHp, 0, MaxHp);
-	OnHpChanged.Broadcast(CurrentHp);
+	//OnHpChanged.Broadcast(CurrentHp);
 }
 
 void UPlayerStatComponent::SetMp(float NewMp)
 {
 	CurrentMp = FMath::Clamp(NewMp, 0, MaxMp);
-	OnMpChanged.Broadcast(CurrentMp);
+	//OnMpChanged.Broadcast(CurrentMp);
 }
 
 void UPlayerStatComponent::SetXp(float NewXp)
 {
 	CurrentXP = FMath::Clamp(NewXp, 0, NextLevelXP);
-	OnXpChanged.Broadcast(CurrentXP);
+	//OnXpChanged.Broadcast(CurrentXP);
 }
 
 void UPlayerStatComponent::SetLevel(float NewLevel)
 {
-	OnLevelChanged.Broadcast(NewLevel);
+	//OnLevelChanged.Broadcast(NewLevel);
 }
 

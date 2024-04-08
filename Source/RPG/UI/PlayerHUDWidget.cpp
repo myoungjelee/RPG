@@ -30,37 +30,37 @@ void UPlayerHUDWidget::NativeConstruct()
 
 	Player = Cast<ARPGPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
-	MaxHp = Player->Stat->MaxHp;
-	MaxMp = Player->Stat->MaxMp;
-	NextLevelXP = Player->Stat->NextLevelXP;
-	CurrentLevel = Player->Stat->Level;
+	//MaxHp = Player->Stat->MaxHp;
+	//MaxMp = Player->Stat->MaxMp;
+	//NextLevelXP = Player->Stat->NextLevelXP;
+	//CurrentLevel = Player->Stat->Level;
 
-	Player->Stat->OnHpChanged.AddUObject(this, &UPlayerHUDWidget::UpdateHpBar);
-	Player->Stat->OnMpChanged.AddUObject(this, &UPlayerHUDWidget::UpdateMpBar);
-	Player->Stat->OnXpChanged.AddUObject(this, &UPlayerHUDWidget::UpdateXPBar);
-	Player->Stat->OnLevelChanged.AddUObject(this, &UPlayerHUDWidget::UpdateLevel);
+	//Player->Stat->OnHpChanged.AddUObject(this, &UPlayerHUDWidget::UpdateHpBar);
+	//Player->Stat->OnMpChanged.AddUObject(this, &UPlayerHUDWidget::UpdateMpBar);
+	//Player->Stat->OnXpChanged.AddUObject(this, &UPlayerHUDWidget::UpdateXPBar);
+	//Player->Stat->OnLevelChanged.AddUObject(this, &UPlayerHUDWidget::UpdateLevel);
 
 }
 
-void UPlayerHUDWidget::UpdateHpBar(float CurrentHp)
-{
-	float Hp = CurrentHp / MaxHp;
-	HPBar->SetPercent(Hp);
-}
-
-void UPlayerHUDWidget::UpdateMpBar(float CurrentMp)
-{
-	float Mp = CurrentMp / MaxMp;
-	MPBar->SetPercent(Mp);
-}
-
-void UPlayerHUDWidget::UpdateXPBar(float CurrentXp)
-{
-	float Xp = CurrentXp / NextLevelXP;
-	XPBar->SetPercent(Xp);
-}
-
-void UPlayerHUDWidget::UpdateLevel(float NewLevel)
-{
-	Level->SetText(FText::AsNumber(NewLevel));
-}
+//void UPlayerHUDWidget::UpdateHpBar(float CurrentHp)
+//{
+//	float Hp = CurrentHp / MaxHp;
+//	HPBar->SetPercent(Hp);
+//}
+//
+//void UPlayerHUDWidget::UpdateMpBar(float CurrentMp)
+//{
+//	float Mp = CurrentMp / MaxMp;
+//	MPBar->SetPercent(Mp);
+//}
+//
+//void UPlayerHUDWidget::UpdateXPBar(float CurrentXp)
+//{
+//	float Xp = CurrentXp / NextLevelXP;
+//	XPBar->SetPercent(Xp);
+//}
+//
+//void UPlayerHUDWidget::UpdateLevel(float NewLevel)
+//{
+//	Level->SetText(FText::AsNumber(NewLevel));
+//}

@@ -16,7 +16,8 @@ enum class EItemNames : uint8
 	MPPotion,
 	Dagger,
 	Sword,
-	Sheild,
+	WoodShield UMETA(DisplayName = "Wood Shield"),
+	IronShield UMETA(DisplayName = "Iron Shield")
 };
 
 

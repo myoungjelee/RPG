@@ -6,6 +6,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "UI/InventoryIconWidget.h"
 #include "Components/UniformGridPanel.h"
+#include "Components/Button.h"
+#include "Interaction/InteractionBase.h"
 
 UMenuWidget::UMenuWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -25,8 +27,14 @@ void UMenuWidget::NativeConstruct()
 	Player = Cast<ARPGPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
 	InventoryPanel = Cast<UUniformGridPanel>(GetWidgetFromName(TEXT("InventoryPanel")));
+
+	Btn_Use->OnClicked.AddDynamic(this, &UMenuWidget::BtnUseClick);
+	Btn_Sword->OnClicked.AddDynamic(this, &UMenuWidget::BtnSwordClick);
+	Btn_Shield->OnClicked.AddDynamic(this, &UMenuWidget::BtnShieldClick);
+	Btn_Accessory->OnClicked.AddDynamic(this, &UMenuWidget::BtnAccClick);
 	
 	BuildIventory();
+	CheckGear();
 }
 
 //void UMenuWidget::BuildIventory()
@@ -86,4 +94,87 @@ void UMenuWidget::BuildIventory()
 			Row++;
 		}
 	}
+}
+
+void UMenuWidget::BtnUseClick()
+{
+	Player->UseItem(Player->ItemSelected);
+}
+
+void UMenuWidget::BtnSwordClick()
+{
+	if (Player->SwordInfo.ItemClass)
+	{
+		Player->PickupItem(Player->SwordInfo);
+		Player->SwordInfo = FItemInfo();
+		CheckGear();
+	}
+}
+
+void UMenuWidget::BtnShieldClick()
+{
+	if (Player->ShieldInfo.ItemClass)
+	{
+		Player->PickupItem(Player->ShieldInfo);
+		Player->ShieldInfo = FItemInfo();
+		CheckGear();
+	}
+}
+
+void UMenuWidget::BtnAccClick()
+{
+	if (Player->AccessoryInfo.ItemClass)
+	{
+		Player->PickupItem(Player->AccessoryInfo);
+		Player->AccessoryInfo = FItemInfo();
+		CheckGear();
+	}
+}
+
+void UMenuWidget::CheckGear()
+{
+	FButtonStyle SwordBtnStyle;
+
+	SwordBtnStyle.Normal.SetResourceObject(Player->SwordInfo.ItemImage);
+	SwordBtnStyle.Pressed.SetResourceObject(Player->SwordInfo.ItemImage);
+	SwordBtnStyle.Hovered.SetResourceObject(Player->SwordInfo.ItemImage);
+	SwordBtnStyle.Hovered.TintColor = FSlateColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.0f));
+
+	Btn_Sword->SetStyle(SwordBtnStyle);
+
+	FButtonStyle ShieldBtnStyle;
+
+	ShieldBtnStyle.Normal.SetResourceObject(Player->ShieldInfo.ItemImage);
+	ShieldBtnStyle.Pressed.SetResourceObject(Player->ShieldInfo.ItemImage);
+	ShieldBtnStyle.Hovered.SetResourceObject(Player->ShieldInfo.ItemImage);
+	ShieldBtnStyle.Hovered.TintColor = FSlateColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.0f));
+
+	Btn_Shield->SetStyle(ShieldBtnStyle);
+
+	//FButtonStyle ArrowBtnStyle;
+
+	//ArrowBtnStyle.Normal.SetResourceObject(Player->ArrowdInfo.ItemImage);
+	//ArrowBtnStyle.Pressed.SetResourceObject(Player->ArrowdInfo.ItemImage);
+	//ArrowBtnStyle.Hovered.SetResourceObject(Player->ArrowdInfo.ItemImage);
+	//ArrowBtnStyle.Hovered.TintColor = FSlateColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.0f));
+
+	//Btn_Arrow->SetStyle(ArrowBtnStyle);
+
+	//FButtonStyle BowBtnStyle;
+
+	//BowBtnStyle.Normal.SetResourceObject(Player->BowInfo.ItemImage);
+	//BowBtnStyle.Pressed.SetResourceObject(Player->BowInfo.ItemImage);
+	//BowBtnStyle.Hovered.SetResourceObject(Player->BowInfo.ItemImage);
+	//BowBtnStyle.Hovered.TintColor = FSlateColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.0f));
+
+	//Btn_Bow->SetStyle(BowBtnStyle);
+
+	FButtonStyle AccessoryBtnStyle;
+
+	AccessoryBtnStyle.Normal.SetResourceObject(Player->AccessoryInfo.ItemImage);
+	AccessoryBtnStyle.Pressed.SetResourceObject(Player->AccessoryInfo.ItemImage);
+	AccessoryBtnStyle.Hovered.SetResourceObject(Player->AccessoryInfo.ItemImage);
+	AccessoryBtnStyle.Hovered.TintColor = FSlateColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.0f));
+
+	Btn_Accessory->SetStyle(AccessoryBtnStyle);
 }

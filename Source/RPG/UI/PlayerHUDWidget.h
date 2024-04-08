@@ -32,7 +32,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	TObjectPtr<class UTextBlock> Level;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
 	TObjectPtr<class ARPGPlayer> Player;
 
 	UPROPERTY()
@@ -48,9 +48,9 @@ public:
 	int32 CurrentLevel;
 
 public:
-	void UpdateHpBar(float CurrentHp);
-	void UpdateMpBar(float CurrentMp);
-	void UpdateXPBar(float CurrentXp);
-	void UpdateLevel(float NewLevel);
+	//void UpdateHpBar(float CurrentHp);
+	//void UpdateMpBar(float CurrentMp);
+	//void UpdateXPBar(float CurrentXp);
+	//void UpdateLevel(float NewLevel);
 };
 
