@@ -51,7 +51,7 @@ public:
 	TObjectPtr<class UButton> Btn_Bow;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
-	TObjectPtr<class UButton> Btn_Accessory;
+	TObjectPtr<class UButton> Btn_Acc;
 
 	UFUNCTION()
 	void BuildIventory();

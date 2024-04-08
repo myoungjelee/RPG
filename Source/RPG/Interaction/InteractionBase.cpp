@@ -3,6 +3,7 @@
 
 #include "Interaction/InteractionBase.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
 #include "Player/RPGPlayer.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -13,6 +14,7 @@ AInteractionBase::AInteractionBase()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Item"));
+	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshRef(TEXT("/Script/Engine.StaticMesh'/Game/Infinity_Blade_Assets/Meshes/Props/SM_TreasureBags02.SM_TreasureBags02'"));
 	if (MeshRef.Object)
@@ -20,6 +22,7 @@ AInteractionBase::AInteractionBase()
 		Mesh->SetStaticMesh(MeshRef.Object);
 	}
 
+	Sphere->SetSphereRadius(50.0f);
 	//static ConstructorHelpers::FObjectFinder<UDataTable> DataTableRef(TEXT("/Script/Engine.DataTable'/Game/ThirdPerson/Blueprints/Interaction/DT_ItemInfo.DT_ItemInfo'"));
 	//if (DataTableRef.Object)
 	//{

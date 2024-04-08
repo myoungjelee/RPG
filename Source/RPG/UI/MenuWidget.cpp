@@ -31,7 +31,7 @@ void UMenuWidget::NativeConstruct()
 	Btn_Use->OnClicked.AddDynamic(this, &UMenuWidget::BtnUseClick);
 	Btn_Sword->OnClicked.AddDynamic(this, &UMenuWidget::BtnSwordClick);
 	Btn_Shield->OnClicked.AddDynamic(this, &UMenuWidget::BtnShieldClick);
-	Btn_Accessory->OnClicked.AddDynamic(this, &UMenuWidget::BtnAccClick);
+	Btn_Acc->OnClicked.AddDynamic(this, &UMenuWidget::BtnAccClick);
 	
 	BuildIventory();
 	CheckGear();
@@ -123,10 +123,10 @@ void UMenuWidget::BtnShieldClick()
 
 void UMenuWidget::BtnAccClick()
 {
-	if (Player->AccessoryInfo.ItemClass)
+	if (Player->AccInfo.ItemClass)
 	{
-		Player->PickupItem(Player->AccessoryInfo);
-		Player->AccessoryInfo = FItemInfo();
+		Player->PickupItem(Player->AccInfo);
+		Player->AccInfo = FItemInfo();
 		CheckGear();
 	}
 }
@@ -169,12 +169,12 @@ void UMenuWidget::CheckGear()
 
 	//Btn_Bow->SetStyle(BowBtnStyle);
 
-	FButtonStyle AccessoryBtnStyle;
+	FButtonStyle AccBtnStyle;
 
-	AccessoryBtnStyle.Normal.SetResourceObject(Player->AccessoryInfo.ItemImage);
-	AccessoryBtnStyle.Pressed.SetResourceObject(Player->AccessoryInfo.ItemImage);
-	AccessoryBtnStyle.Hovered.SetResourceObject(Player->AccessoryInfo.ItemImage);
-	AccessoryBtnStyle.Hovered.TintColor = FSlateColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.0f));
+	AccBtnStyle.Normal.SetResourceObject(Player->AccInfo.ItemImage);
+	AccBtnStyle.Pressed.SetResourceObject(Player->AccInfo.ItemImage);
+	AccBtnStyle.Hovered.SetResourceObject(Player->AccInfo.ItemImage);
+	AccBtnStyle.Hovered.TintColor = FSlateColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.0f));
 
-	Btn_Accessory->SetStyle(AccessoryBtnStyle);
+	Btn_Acc->SetStyle(AccBtnStyle);
 }

@@ -109,6 +109,13 @@ ARPGPlayer::ARPGPlayer()
 		MenuAction = IAMenuRef.Object;
 	}
 
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> IADrawSwordRef(TEXT("/Script/EnhancedInput.InputAction'/Game/ThirdPerson/Input/Actions/IA_DrawSword.IA_DrawSword'"));
+	if (IADrawSwordRef.Object)
+	{
+		DrawSwordAction = IADrawSwordRef.Object;
+	}
+
 	// 애니메이션 설정
 	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Script/Engine.AnimBlueprint'/Game/ThirdPerson/Blueprints/Character/Player/ABP_PlayerAnim.ABP_PlayerAnim_C'"));
 	if (AnimRef.Class)
@@ -187,6 +194,9 @@ void ARPGPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputCom
 
 		//메뉴
 		EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Started, this, &ARPGPlayer::OpenMenu);
+
+		//칼뽑기
+		EnhancedInputComponent->BindAction(DrawSwordAction, ETriggerEvent::Completed, this, &ARPGPlayer::DrawSword);
 	}
 
 }
@@ -225,6 +235,30 @@ void ARPGPlayer::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void ARPGPlayer::DrawSword()
+{
+	if (SwordInfo.ItemClass)
+	{
+		if (!bIsChangingEquipment)
+		{
+			if (bIsSwordDrawn)
+			{
+				bIsSwordDrawn = false;
+				GetCharacterMovement()->bOrientRotationToMovement = true;
+				GetCharacterMovement()->bUseControllerDesiredRotation = false;
+				DestroyGear();
+			}
+			else
+			{
+				bIsSwordDrawn = true;
+				GetCharacterMovement()->bOrientRotationToMovement = false;
+				GetCharacterMovement()->bUseControllerDesiredRotation = true;
+			}
+		}
+	}
+
 }
 
 void ARPGPlayer::PickupItem(const FItemInfo& PickupItemInfo)
@@ -299,13 +333,28 @@ void ARPGPlayer::Interaction()
 {
 	if (InteractableActors.Num() > 0)
 	{
-		InteractableActors[0]->Interact(InteractableActors[0]->ItemInfo);
-
-		//다시 배열체크해서 색상변경
-		if (InteractableActors.Num() > 0)
+		if (!bWeaponEquipped)
 		{
-			InteractableActors[0]->Mesh->SetRenderCustomDepth(true);
+			InteractableActors[0]->Interact(InteractableActors[0]->ItemInfo);
+
+			//다시 배열체크해서 색상변경
+			if (InteractableActors.Num() > 0)
+			{
+				InteractableActors[0]->Mesh->SetRenderCustomDepth(true);
+			}
 		}
+		else
+		{
+			if (!ShieldRef)
+			{
+				InteractableActors[1]->Interact(InteractableActors[1]->ItemInfo);
+			}
+			else
+			{
+				InteractableActors[2]->Interact(InteractableActors[2]->ItemInfo);
+			}
+		}
+		
 	}
 }
 
@@ -441,6 +490,40 @@ void ARPGPlayer::ChangeShield(const FItemInfo& ItemInfo)
 	{
 		MenuWidget->CheckGear();
 	}
+}
+
+void ARPGPlayer::SpawnGear()
+{
+	if (SwordInfo.ItemClass)
+	{
+		SwordRef = GetWorld()->SpawnActor<AInteractionBase>(SwordInfo.ItemClass, GetMesh()->GetSocketTransform(TEXT("WeaponSlot"), ERelativeTransformSpace::RTS_Actor));
+
+		SwordRef->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("WeaponSlot"));
+	}
+
+	if (ShieldInfo.ItemClass)
+	{
+		ShieldRef = GetWorld()->SpawnActor<AInteractionBase>(ShieldInfo.ItemClass, GetMesh()->GetSocketTransform(TEXT("ShieldSlot"), ERelativeTransformSpace::RTS_Actor));
+
+		ShieldRef->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("ShieldSlot"));
+	}
+
+	bWeaponEquipped = true;
+}
+
+void ARPGPlayer::DestroyGear()
+{
+	if (SwordRef)
+	{
+		SwordRef->Destroy();
+	}
+
+	if (ShieldRef)
+	{
+		ShieldRef->Destroy();
+	}
+
+	bWeaponEquipped = false;
 }
 
 

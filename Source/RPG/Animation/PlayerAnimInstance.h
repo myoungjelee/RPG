@@ -19,24 +19,27 @@ public:
 
 	virtual void NativeInitializeAnimation() override;
 
-	virtual void NativeUpdateAnimation(float DeltaSeconds) override;\
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
-	TObjectPtr<class ARPGPlayer> Owner;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
-	TObjectPtr<class UCharacterMovementComponent> Movement;
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	TObjectPtr<class ARPGPlayer> Player;
+
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
+	//TObjectPtr<class UCharacterMovementComponent> Movement;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
 	FVector Velocity;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
 	float Speed;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Character)
 	float Direction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
 	uint8 bIsFalling : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	uint8 bIsEquipMelee : 1;
 
 };

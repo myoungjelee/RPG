@@ -7,28 +7,33 @@
 
 UPlayerAnimInstance::UPlayerAnimInstance()
 {
+
 }
 
 void UPlayerAnimInstance::NativeInitializeAnimation()
 {
-	//Owner = Cast<ARPGPlayer>(GetOwningActor());
-	
+	Super::NativeInitializeAnimation();
+
+	//Player = Cast<ARPGPlayer>(GetOwningActor());
 	APawn* Pawn = TryGetPawnOwner();
-	Owner = Cast<ARPGPlayer>(Pawn);
-	if (Owner)
-	{
-		Movement = Owner->GetCharacterMovement();
-	}
+	Player = Cast<ARPGPlayer>(Pawn);
 }
 
 void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
-	if (Movement)
+	Super::NativeUpdateAnimation(DeltaSeconds);
+
+	if (Player)
 	{
-		Velocity = Movement->Velocity;
-		/*Direction = CalculateDirection(Velocity, Owner->GetActorRotation());
-		Speed = Velocity.Length();*/
-		Speed = Velocity.Size2D();
-		bIsFalling = Movement->IsFalling();
+		Direction = CalculateDirection(Player->GetVelocity(), Player->GetActorRotation());
+		Speed = Player->GetVelocity().Length();
+		//Speed = Velocity.Size2D();
+		bIsFalling = Player->GetCharacterMovement()->IsFalling();
+		bIsEquipMelee = Player->bIsSwordDrawn;
+		
+
+		//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, FString::Printf(TEXT("%d"), bIsEquipMelee));
+		//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, FString::Printf(TEXT("%d"), Player->bIsSwordDrawn));
 	}
+
 }

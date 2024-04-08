@@ -44,6 +44,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UStaticMeshComponent> Mesh;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class USphereComponent> Sphere;
+
 	//UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
 	//TObjectPtr<class UDataTable> ItemDataTable;
 

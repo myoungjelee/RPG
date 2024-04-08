@@ -44,6 +44,9 @@ class RPG_API ARPGPlayer : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* MenuAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* DrawSwordAction;
+
 public:
 	ARPGPlayer();
 
@@ -73,6 +76,14 @@ public:
 	// 애니메이션 설정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Anim)
 	TSubclassOf<class UAnimInstance> AnimInstance;
+
+	void DrawSword();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Equipment)
+	uint8 bIsChangingEquipment : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Equipment)
+	uint8 bIsSwordDrawn : 1;
 
 	// 스탯 설정
 public:
@@ -145,6 +156,25 @@ public:
 	FItemInfo ShieldInfo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FItemInfo AccessoryInfo;
+	FItemInfo AccInfo;
+
+	//아이템 장착
+	UFUNCTION(BlueprintCallable)
+	void SpawnGear();
+
+	UFUNCTION(BlueprintCallable)
+	void DestroyGear();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class AInteractionBase> SwordRef;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class AInteractionBase> ShieldRef;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class AInteractionBase> AccRef;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bWeaponEquipped : 1;
 
 };
