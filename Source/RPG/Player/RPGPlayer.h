@@ -59,6 +59,7 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
+	void Jump();
 
 protected:
 	// APawn interface
@@ -174,7 +175,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class AInteractionBase> AccRef;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	uint8 bWeaponEquipped : 1;
+	// 카메라 설정
+	void MeleeCamShift();
 
+	void MeleeCamReShift();
 };

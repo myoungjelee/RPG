@@ -18,6 +18,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "InputMappingContext.h"
 #include "Animation/AnimInstance.h"
+#include "Misc/OutputDeviceNull.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,9 +49,9 @@ ARPGPlayer::ARPGPlayer()
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
-	GetCharacterMovement()->JumpZVelocity = 700.f;
-	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
+	GetCharacterMovement()->JumpZVelocity = 600.f;
+	GetCharacterMovement()->AirControl = 0.2f;
+	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
 
 	// 무브먼트 설정
 	GetCharacterMovement()->MaxAcceleration = 768.f;
@@ -61,7 +62,7 @@ ARPGPlayer::ARPGPlayer()
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
+	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
 	// Create a follow camera
@@ -142,8 +143,8 @@ ARPGPlayer::ARPGPlayer()
 	// 인터랙션 설정
 	InteractionRadius = CreateDefaultSubobject<USphereComponent>(TEXT("InteractionRadius"));
 	InteractionRadius->SetupAttachment(GetMesh());
-	InteractionRadius->SetSphereRadius(100.f);
-	InteractionRadius->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	InteractionRadius->SetSphereRadius(150.f);
+	InteractionRadius->SetCollisionProfileName(TEXT("PlayerInteraction"));
 	InteractionRadius->OnComponentBeginOverlap.AddDynamic(this, &ARPGPlayer::InteractionBeginOverlap);
 	InteractionRadius->OnComponentEndOverlap.AddDynamic(this, &ARPGPlayer::InteractionEndOverlap);
 
@@ -180,7 +181,7 @@ void ARPGPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputCom
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 
 		//Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ARPGPlayer::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		//Moving
@@ -237,6 +238,15 @@ void ARPGPlayer::Look(const FInputActionValue& Value)
 	}
 }
 
+void ARPGPlayer::Jump()
+{
+	if (!bIsChangingEquipment)
+	{
+		bPressedJump = true;
+		JumpKeyHoldTime = 0.0f;
+	}
+}
+
 void ARPGPlayer::DrawSword()
 {
 	if (SwordInfo.ItemClass)
@@ -249,16 +259,17 @@ void ARPGPlayer::DrawSword()
 				GetCharacterMovement()->bOrientRotationToMovement = true;
 				GetCharacterMovement()->bUseControllerDesiredRotation = false;
 				DestroyGear();
+				MeleeCamReShift();
 			}
 			else
 			{
 				bIsSwordDrawn = true;
 				GetCharacterMovement()->bOrientRotationToMovement = false;
 				GetCharacterMovement()->bUseControllerDesiredRotation = true;
+				MeleeCamShift();
 			}
 		}
 	}
-
 }
 
 void ARPGPlayer::PickupItem(const FItemInfo& PickupItemInfo)
@@ -302,9 +313,9 @@ void ARPGPlayer::PickupItem(const FItemInfo& PickupItemInfo)
 
 void ARPGPlayer::InteractionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
+	if (OtherComp->GetOwner()->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
 	{
-		AInteractionBase* InteractableActor = Cast<AInteractionBase>(OtherActor);
+		AInteractionBase* InteractableActor = Cast<AInteractionBase>(OtherComp->GetOwner());
 		if (InteractableActor)
 		{
 			InteractableActors.AddUnique(InteractableActor);
@@ -318,9 +329,9 @@ void ARPGPlayer::InteractionBeginOverlap(UPrimitiveComponent* OverlappedComponen
 
 void ARPGPlayer::InteractionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
+	if (OtherComp->GetOwner()->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
 	{
-		AInteractionBase* InteractableActor = Cast<AInteractionBase>(OtherActor);
+		AInteractionBase* InteractableActor = Cast<AInteractionBase>(OtherComp->GetOwner());
 		if (InteractableActor)
 		{
 			InteractableActor->Mesh->SetRenderCustomDepth(false);
@@ -332,29 +343,14 @@ void ARPGPlayer::InteractionEndOverlap(UPrimitiveComponent* OverlappedComponent,
 void ARPGPlayer::Interaction()
 {
 	if (InteractableActors.Num() > 0)
-	{
-		if (!bWeaponEquipped)
-		{
-			InteractableActors[0]->Interact();
+	{	
+		InteractableActors[0]->Interact();
 
-			//다시 배열체크해서 색상변경
-			if (InteractableActors.Num() > 0)
-			{
-				InteractableActors[0]->Mesh->SetRenderCustomDepth(true);
-			}
-		}
-		else
+		//다시 배열체크해서 색상변경
+		if (InteractableActors.Num() > 0)
 		{
-			if (!ShieldRef)
-			{
-				InteractableActors[1]->Interact();
-			}
-			else
-			{
-				InteractableActors[2]->Interact();
-			}
+			InteractableActors[0]->Mesh->SetRenderCustomDepth(true);
 		}
-		
 	}
 }
 
@@ -408,11 +404,25 @@ void ARPGPlayer::UseItem(const FItemInfo& ItemInfo)
 		break; 
 	case EItemType::Sword:
 		ChangeSword(ItemInfo);
+		if (SwordRef)
+		{
+			DestroyGear();
+			SpawnGear();
+		}
+
 		RemoveItem(ItemInfo);
+
 		break; 
 	case EItemType::Shield:
 		ChangeShield(ItemInfo);
+		if (ShieldRef)
+		{
+			DestroyGear();
+			SpawnGear();
+		}
+
 		RemoveItem(ItemInfo);
+
 		break; 
 	case EItemType::KeyItem:
 		break;
@@ -499,6 +509,8 @@ void ARPGPlayer::SpawnGear()
 		SwordRef = GetWorld()->SpawnActor<AInteractionBase>(SwordInfo.ItemClass, GetMesh()->GetSocketTransform(TEXT("WeaponSlot"), ERelativeTransformSpace::RTS_Actor));
 
 		SwordRef->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("WeaponSlot"));
+
+		SwordRef->Sphere->SetCollisionProfileName(TEXT("NoCollision"));
 	}
 
 	if (ShieldInfo.ItemClass)
@@ -506,9 +518,9 @@ void ARPGPlayer::SpawnGear()
 		ShieldRef = GetWorld()->SpawnActor<AInteractionBase>(ShieldInfo.ItemClass, GetMesh()->GetSocketTransform(TEXT("ShieldSlot"), ERelativeTransformSpace::RTS_Actor));
 
 		ShieldRef->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("ShieldSlot"));
-	}
 
-	bWeaponEquipped = true;
+		ShieldRef->Sphere->SetCollisionProfileName(TEXT("NoCollision"));
+	}
 }
 
 void ARPGPlayer::DestroyGear()
@@ -522,9 +534,25 @@ void ARPGPlayer::DestroyGear()
 	{
 		ShieldRef->Destroy();
 	}
-
-	bWeaponEquipped = false;
 }
+
+//블루프린트 함수 호출하기
+void ARPGPlayer::MeleeCamShift()
+{
+	FString FuncName = TEXT("MeleeCamShift");
+	FOutputDeviceNull Ar;
+	this->CallFunctionByNameWithArguments(*FuncName, Ar, NULL, true);
+}
+
+//블루프린트 함수 호출하기
+void ARPGPlayer::MeleeCamReShift()
+{
+	FString FuncName = TEXT("MeleeCamReShift");
+	FOutputDeviceNull Ar;
+	this->CallFunctionByNameWithArguments(*FuncName, Ar, NULL, true);
+}
+
+
 
 
 

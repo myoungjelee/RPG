@@ -13,8 +13,13 @@ AInteractionBase::AInteractionBase()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Item"));
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
+	SetRootComponent(Sphere);
+	Sphere->SetCollisionProfileName(TEXT("InteractionCollision"));
+	Sphere->SetSphereRadius(50.0f);
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Item"));
+	Mesh->SetupAttachment(Sphere);
+	//Mesh->SetCollisionProfileName(TEXT("OverlapAll"));
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshRef(TEXT("/Script/Engine.StaticMesh'/Game/Infinity_Blade_Assets/Meshes/Props/SM_TreasureBags02.SM_TreasureBags02'"));
 	if (MeshRef.Object)

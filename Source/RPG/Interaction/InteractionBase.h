@@ -50,7 +50,7 @@ public:
 	//UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
 	//TObjectPtr<class UDataTable> ItemDataTable;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EItemNames ItemName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
