@@ -38,7 +38,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void Interact(FItemInfo& AddedItemInfo) override;
+	virtual void Interact() override;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

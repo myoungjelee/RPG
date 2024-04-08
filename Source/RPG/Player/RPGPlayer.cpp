@@ -335,7 +335,7 @@ void ARPGPlayer::Interaction()
 	{
 		if (!bWeaponEquipped)
 		{
-			InteractableActors[0]->Interact(InteractableActors[0]->ItemInfo);
+			InteractableActors[0]->Interact();
 
 			//다시 배열체크해서 색상변경
 			if (InteractableActors.Num() > 0)
@@ -347,11 +347,11 @@ void ARPGPlayer::Interaction()
 		{
 			if (!ShieldRef)
 			{
-				InteractableActors[1]->Interact(InteractableActors[1]->ItemInfo);
+				InteractableActors[1]->Interact();
 			}
 			else
 			{
-				InteractableActors[2]->Interact(InteractableActors[2]->ItemInfo);
+				InteractableActors[2]->Interact();
 			}
 		}
 		

@@ -44,12 +44,12 @@ void AInteractionBase::Tick(float DeltaTime)
 
 }
 
-void AInteractionBase::Interact(FItemInfo& AddedItemInfo)
+void AInteractionBase::Interact()
 {
 	ARPGPlayer* Player = Cast<ARPGPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 	if (Player)
 	{
-		Player->PickupItem(AddedItemInfo);
+		Player->PickupItem(ItemInfo);
 		Destroy();
 	}
 }
