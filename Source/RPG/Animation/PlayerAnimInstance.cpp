@@ -30,10 +30,9 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		//Speed = Velocity.Size2D();
 		bIsFalling = Player->GetCharacterMovement()->IsFalling();
 		bIsEquipMelee = Player->bIsSwordDrawn;
-		
-
-		//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, FString::Printf(TEXT("%d"), bIsEquipMelee));
-		//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, FString::Printf(TEXT("%d"), Player->bIsSwordDrawn));
+		bAttack1 = Player->bAttack1;
+		bAttack2 = Player->bAttack2;
+		bAttack3 = Player->bAttack3;
+		bAttackSaved = Player->bAttackSaved;	
 	}
-
 }

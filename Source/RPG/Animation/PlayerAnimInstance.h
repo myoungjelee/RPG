@@ -42,4 +42,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
 	uint8 bIsEquipMelee : 1;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	uint8 bAttack1 : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	uint8 bAttack2 : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	uint8 bAttack3 : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	uint8 bAttackSaved : 1;
+
 };

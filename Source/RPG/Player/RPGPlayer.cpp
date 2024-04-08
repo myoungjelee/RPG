@@ -117,6 +117,12 @@ ARPGPlayer::ARPGPlayer()
 		DrawSwordAction = IADrawSwordRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> AttackdRef(TEXT("/Script/EnhancedInput.InputAction'/Game/ThirdPerson/Input/Actions/IA_Attack.IA_Attack'"));
+	if (AttackdRef.Object)
+	{
+		AttackAction = AttackdRef.Object;
+	}
+
 	// 애니메이션 설정
 	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Script/Engine.AnimBlueprint'/Game/ThirdPerson/Blueprints/Character/Player/ABP_PlayerAnim.ABP_PlayerAnim_C'"));
 	if (AnimRef.Class)
@@ -148,7 +154,7 @@ ARPGPlayer::ARPGPlayer()
 	InteractionRadius->OnComponentBeginOverlap.AddDynamic(this, &ARPGPlayer::InteractionBeginOverlap);
 	InteractionRadius->OnComponentEndOverlap.AddDynamic(this, &ARPGPlayer::InteractionEndOverlap);
 
-	bMenuOpen = false;
+	bCanAttack = true;
 
 	// 인벤토리 크기 설정
 	InventorySize = 25;
@@ -198,6 +204,9 @@ void ARPGPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputCom
 
 		//칼뽑기
 		EnhancedInputComponent->BindAction(DrawSwordAction, ETriggerEvent::Completed, this, &ARPGPlayer::DrawSword);
+
+		//공격
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ARPGPlayer::Attack);
 	}
 
 }
@@ -240,7 +249,7 @@ void ARPGPlayer::Look(const FInputActionValue& Value)
 
 void ARPGPlayer::Jump()
 {
-	if (!bIsChangingEquipment)
+	if (!bIsChangingEquipment || !bAttackSaved)
 	{
 		bPressedJump = true;
 		JumpKeyHoldTime = 0.0f;
@@ -258,8 +267,8 @@ void ARPGPlayer::DrawSword()
 				bIsSwordDrawn = false;
 				GetCharacterMovement()->bOrientRotationToMovement = true;
 				GetCharacterMovement()->bUseControllerDesiredRotation = false;
-				DestroyGear();
 				MeleeCamReShift();
+				AttackType = EAttackType::None;
 			}
 			else
 			{
@@ -267,8 +276,11 @@ void ARPGPlayer::DrawSword()
 				GetCharacterMovement()->bOrientRotationToMovement = false;
 				GetCharacterMovement()->bUseControllerDesiredRotation = true;
 				MeleeCamShift();
+				AttackType = EAttackType::Melee;
 			}
 		}
+
+		bIsChangingEquipment = true;
 	}
 }
 
@@ -550,6 +562,62 @@ void ARPGPlayer::MeleeCamReShift()
 	FString FuncName = TEXT("MeleeCamReShift");
 	FOutputDeviceNull Ar;
 	this->CallFunctionByNameWithArguments(*FuncName, Ar, NULL, true);
+}
+
+void ARPGPlayer::Attack()
+{
+	if (!bIsChangingEquipment && !GetCharacterMovement()->IsFalling())
+	{
+		switch (AttackType)
+		{
+		case EAttackType::None:
+			break;
+		case EAttackType::Melee:
+			if (bCanAttack)
+			{
+				bCanAttack = false;
+				bAttackSaved = true;
+				switch (AttackCombo)
+				{
+				case 0:
+					bAttack1 = true;
+					bAttack3 = false;
+					AttackCombo++;
+					break;
+				case 1:
+					bAttack2 = true;
+					bAttack1 = false;
+					AttackCombo++;
+					break;
+				case 2:
+					bAttack3 = true;
+					bAttack2 = false;
+					AttackCombo = 0;
+					AdjustSpeed(0.0f);
+					break;
+				}
+			}
+			break;
+		case EAttackType::Ranged:
+			break;
+		}
+	}
+}
+
+void ARPGPlayer::AdjustSpeed(float Speed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = Speed;
+}
+
+void ARPGPlayer::ResetAttack()
+{
+	bCanAttack = true;
+	bAttackSaved = false;
+	AttackCombo = 0;
+	bAttack1 = false;
+	bAttack2 = false;
+	bAttack3 = false;
+	AdjustSpeed(450.0f);
 }
 
 

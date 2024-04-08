@@ -9,6 +9,14 @@
 #include "Interaction/ItemInfo.h"
 #include "RPGPlayer.generated.h"
 
+UENUM(BlueprintType)
+enum class EAttackType : uint8
+{
+	None,
+	Melee,
+	Ranged
+};
+
 UCLASS()
 class RPG_API ARPGPlayer : public ACharacter
 {
@@ -46,6 +54,9 @@ class RPG_API ARPGPlayer : public ACharacter
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* DrawSwordAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* AttackAction;
 
 public:
 	ARPGPlayer();
@@ -177,6 +188,32 @@ public:
 
 	// 카메라 설정
 	void MeleeCamShift();
-
 	void MeleeCamReShift();
+
+	// 공격 설정
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EAttackType AttackType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bCanAttack : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bAttackSaved : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 AttackCombo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bAttack1 : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bAttack2 : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bAttack3 : 1;
+
+	void Attack();
+	void AdjustSpeed(float Speed);
+	UFUNCTION(BlueprintCallable)
+	void ResetAttack();
 };
