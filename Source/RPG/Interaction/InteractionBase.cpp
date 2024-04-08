@@ -19,7 +19,7 @@ AInteractionBase::AInteractionBase()
 	Sphere->SetSphereRadius(50.0f);
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Item"));
 	Mesh->SetupAttachment(Sphere);
-	//Mesh->SetCollisionProfileName(TEXT("OverlapAll"));
+	Mesh->SetCollisionProfileName(TEXT("OverlapAll"));
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshRef(TEXT("/Script/Engine.StaticMesh'/Game/Infinity_Blade_Assets/Meshes/Props/SM_TreasureBags02.SM_TreasureBags02'"));
 	if (MeshRef.Object)
