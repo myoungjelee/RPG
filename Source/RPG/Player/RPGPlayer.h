@@ -156,6 +156,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FItemInfo ArrowInfo;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bItemEquip : 1;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//uint8 bSwordEquip : 1;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//uint8 bShieldEquip : 1;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//uint8 bBowEquip : 1;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//uint8 bArrowEquip : 1;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//uint8 bAccEquip : 1;
+
 	// 공격 설정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EAttackType AttackType;

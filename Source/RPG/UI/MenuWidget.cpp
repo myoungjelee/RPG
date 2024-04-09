@@ -105,51 +105,76 @@ void UMenuWidget::BtnUseClick()
 
 void UMenuWidget::BtnSwordClick()
 {
-	if (Player->SwordInfo.ItemClass)
+	if (!Player->bItemEquip)
 	{
-		Player->PickupItem(Player->SwordInfo);
-		Player->SwordInfo = FItemInfo();
-		CheckBtnStyle();
+		if (Player->SwordInfo.ItemClass)
+		{
+			Player->PickupItem(Player->SwordInfo);
+			Player->SwordInfo = FItemInfo();
+			CheckBtnStyle();
+			Player->DestroyGear();
+			Player->SpawnGear();
+		}
 	}
 }
 
 void UMenuWidget::BtnShieldClick()
 {
-	if (Player->ShieldInfo.ItemClass)
+	if (!Player->bItemEquip)
 	{
-		Player->PickupItem(Player->ShieldInfo);
-		Player->ShieldInfo = FItemInfo();
-		CheckBtnStyle();
+		if (Player->ShieldInfo.ItemClass)
+		{
+			Player->PickupItem(Player->ShieldInfo);
+			Player->ShieldInfo = FItemInfo();
+			CheckBtnStyle();
+			Player->DestroyGear();
+			Player->SpawnGear();
+		}
 	}
 }
 
 void UMenuWidget::BtnBowClick()
 {
-	if (Player->BowInfo.ItemClass)
+	if (!Player->bItemEquip)
 	{
-		Player->PickupItem(Player->BowInfo);
-		Player->BowInfo = FItemInfo();
-		CheckBtnStyle();
+		if (Player->BowInfo.ItemClass)
+		{
+			Player->PickupItem(Player->BowInfo);
+			Player->BowInfo = FItemInfo();
+			CheckBtnStyle();
+			Player->DestroyGear();
+			Player->SpawnGear();
+		}
 	}
 }
 
 void UMenuWidget::BtnArrowClick()
 {
-	if (Player->ArrowInfo.ItemClass)
+	if (!Player->bItemEquip)
 	{
-		Player->PickupItem(Player->ArrowInfo);
-		Player->ArrowInfo = FItemInfo();
-		CheckBtnStyle();
+		if (Player->ArrowInfo.ItemClass)
+		{
+			Player->PickupItem(Player->ArrowInfo);
+			Player->ArrowInfo = FItemInfo();
+			CheckBtnStyle();
+			Player->DestroyGear();
+			Player->SpawnGear();
+		}
 	}
 }
 
 void UMenuWidget::BtnAccClick()
 {
-	if (Player->AccInfo.ItemClass)
+	if (!Player->bItemEquip)
 	{
-		Player->PickupItem(Player->AccInfo);
-		Player->AccInfo = FItemInfo();
-		CheckBtnStyle();
+		if (Player->AccInfo.ItemClass)
+		{
+			Player->PickupItem(Player->AccInfo);
+			Player->AccInfo = FItemInfo();
+			CheckBtnStyle();
+			Player->DestroyGear();
+			Player->SpawnGear();
+		}
 	}
 }
 

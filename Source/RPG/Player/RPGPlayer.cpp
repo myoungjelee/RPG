@@ -668,6 +668,8 @@ void ARPGPlayer::SpawnGear()
 			ShieldRef->Sphere->SetCollisionProfileName(TEXT("NoCollision"));
 		}
 	}
+
+	bItemEquip = true;
 }
 
 void ARPGPlayer::DestroyGear()
@@ -686,6 +688,8 @@ void ARPGPlayer::DestroyGear()
 	{
 		BowRef->Destroy();
 	}
+	
+	bItemEquip = false;
 }
 
 //블루프린트 함수 호출하기
