@@ -16,8 +16,10 @@ enum class EItemNames : uint8
 	MPPotion,
 	Dagger,
 	Sword,
-	WoodShield UMETA(DisplayName = "Wood Shield"),
-	IronShield UMETA(DisplayName = "Iron Shield")
+	WoodShield UMETA(DisplayName = "WoodShield"),
+	IronShield UMETA(DisplayName = "IronShield"),
+	WoodBow UMETA(DisplayName = "WoodBow"),
+	WoodArrows UMETA(DisplayName = "WoodArrows")
 };
 
 
@@ -50,10 +52,10 @@ public:
 	//UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite)
 	//TObjectPtr<class UDataTable> ItemDataTable;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractionBase | AItemSettings")
 	EItemNames ItemName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractionBase | AItemSettings")
 	FItemInfo ItemInfo;
 
 };

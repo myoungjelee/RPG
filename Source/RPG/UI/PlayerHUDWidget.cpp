@@ -7,6 +7,7 @@
 #include "Player/RPGPlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "CharacterStat/PlayerStatComponent.h"
+#include "Components/Image.h"
 
 UPlayerHUDWidget::UPlayerHUDWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -27,6 +28,7 @@ void UPlayerHUDWidget::NativeConstruct()
 	MPBar = Cast<UProgressBar>(GetWidgetFromName(TEXT("MPBar")));
 	XPBar = Cast<UProgressBar>(GetWidgetFromName(TEXT("XPBar")));
 	Level = Cast<UTextBlock>(GetWidgetFromName(TEXT("Level")));
+	CrossHair = Cast<UImage>(GetWidgetFromName(TEXT("CrossHair")));
 
 	Player = Cast<ARPGPlayer>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 

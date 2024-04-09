@@ -32,6 +32,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	TObjectPtr<class UTextBlock> Level;
 
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	TObjectPtr<class UImage> CrossHair;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
 	TObjectPtr<class ARPGPlayer> Player;
 

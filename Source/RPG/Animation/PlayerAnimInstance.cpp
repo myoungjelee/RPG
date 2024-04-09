@@ -29,10 +29,14 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Speed = Player->GetVelocity().Length();
 		//Speed = Velocity.Size2D();
 		bIsFalling = Player->GetCharacterMovement()->IsFalling();
-		bIsEquipMelee = Player->bIsSwordDrawn;
+		bIsEquipMelee = Player->bSwordDrawn;
 		bAttack1 = Player->bAttack1;
 		bAttack2 = Player->bAttack2;
 		bAttack3 = Player->bAttack3;
 		bAttackSaved = Player->bAttackSaved;	
+		bDrawingBow = Player->bBowDrawn;
+		bFiring = Player->bFireArrow;
+		bHeld = Player->bHeld;
+		bCancel = Player->bCancel;
 	}
 }

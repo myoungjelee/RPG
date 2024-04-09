@@ -31,10 +31,12 @@ void UMenuWidget::NativeConstruct()
 	Btn_Use->OnClicked.AddDynamic(this, &UMenuWidget::BtnUseClick);
 	Btn_Sword->OnClicked.AddDynamic(this, &UMenuWidget::BtnSwordClick);
 	Btn_Shield->OnClicked.AddDynamic(this, &UMenuWidget::BtnShieldClick);
+	Btn_Bow->OnClicked.AddDynamic(this, &UMenuWidget::BtnBowClick);
+	Btn_Arrow->OnClicked.AddDynamic(this, &UMenuWidget::BtnArrowClick);
 	Btn_Acc->OnClicked.AddDynamic(this, &UMenuWidget::BtnAccClick);
 	
 	BuildIventory();
-	CheckGear();
+	CheckBtnStyle();
 }
 
 //void UMenuWidget::BuildIventory()
@@ -107,7 +109,7 @@ void UMenuWidget::BtnSwordClick()
 	{
 		Player->PickupItem(Player->SwordInfo);
 		Player->SwordInfo = FItemInfo();
-		CheckGear();
+		CheckBtnStyle();
 	}
 }
 
@@ -117,7 +119,27 @@ void UMenuWidget::BtnShieldClick()
 	{
 		Player->PickupItem(Player->ShieldInfo);
 		Player->ShieldInfo = FItemInfo();
-		CheckGear();
+		CheckBtnStyle();
+	}
+}
+
+void UMenuWidget::BtnBowClick()
+{
+	if (Player->BowInfo.ItemClass)
+	{
+		Player->PickupItem(Player->BowInfo);
+		Player->BowInfo = FItemInfo();
+		CheckBtnStyle();
+	}
+}
+
+void UMenuWidget::BtnArrowClick()
+{
+	if (Player->ArrowInfo.ItemClass)
+	{
+		Player->PickupItem(Player->ArrowInfo);
+		Player->ArrowInfo = FItemInfo();
+		CheckBtnStyle();
 	}
 }
 
@@ -127,11 +149,11 @@ void UMenuWidget::BtnAccClick()
 	{
 		Player->PickupItem(Player->AccInfo);
 		Player->AccInfo = FItemInfo();
-		CheckGear();
+		CheckBtnStyle();
 	}
 }
 
-void UMenuWidget::CheckGear()
+void UMenuWidget::CheckBtnStyle()
 {
 	FButtonStyle SwordBtnStyle;
 
@@ -151,23 +173,23 @@ void UMenuWidget::CheckGear()
 
 	Btn_Shield->SetStyle(ShieldBtnStyle);
 
-	//FButtonStyle ArrowBtnStyle;
+	FButtonStyle ArrowBtnStyle;
 
-	//ArrowBtnStyle.Normal.SetResourceObject(Player->ArrowdInfo.ItemImage);
-	//ArrowBtnStyle.Pressed.SetResourceObject(Player->ArrowdInfo.ItemImage);
-	//ArrowBtnStyle.Hovered.SetResourceObject(Player->ArrowdInfo.ItemImage);
-	//ArrowBtnStyle.Hovered.TintColor = FSlateColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.0f));
+	ArrowBtnStyle.Normal.SetResourceObject(Player->ArrowInfo.ItemImage);
+	ArrowBtnStyle.Pressed.SetResourceObject(Player->ArrowInfo.ItemImage);
+	ArrowBtnStyle.Hovered.SetResourceObject(Player->ArrowInfo.ItemImage);
+	ArrowBtnStyle.Hovered.TintColor = FSlateColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.0f));
 
-	//Btn_Arrow->SetStyle(ArrowBtnStyle);
+	Btn_Arrow->SetStyle(ArrowBtnStyle);
 
-	//FButtonStyle BowBtnStyle;
+	FButtonStyle BowBtnStyle;
 
-	//BowBtnStyle.Normal.SetResourceObject(Player->BowInfo.ItemImage);
-	//BowBtnStyle.Pressed.SetResourceObject(Player->BowInfo.ItemImage);
-	//BowBtnStyle.Hovered.SetResourceObject(Player->BowInfo.ItemImage);
-	//BowBtnStyle.Hovered.TintColor = FSlateColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.0f));
+	BowBtnStyle.Normal.SetResourceObject(Player->BowInfo.ItemImage);
+	BowBtnStyle.Pressed.SetResourceObject(Player->BowInfo.ItemImage);
+	BowBtnStyle.Hovered.SetResourceObject(Player->BowInfo.ItemImage);
+	BowBtnStyle.Hovered.TintColor = FSlateColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.0f));
 
-	//Btn_Bow->SetStyle(BowBtnStyle);
+	Btn_Bow->SetStyle(BowBtnStyle);
 
 	FButtonStyle AccBtnStyle;
 

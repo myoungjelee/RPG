@@ -19,7 +19,9 @@
 #include "InputMappingContext.h"
 #include "Animation/AnimInstance.h"
 #include "Misc/OutputDeviceNull.h"
-
+#include "Components/SceneComponent.h"
+#include "Engine/DamageEvents.h"
+#include "Kismet/KismetMathLibrary.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ARPGPlayer
@@ -62,6 +64,7 @@ ARPGPlayer::ARPGPlayer()
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
+	CameraBoom->SetRelativeLocation(FVector(0.0f, 0.0f, 45.0f));
 	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
@@ -69,6 +72,14 @@ ARPGPlayer::ARPGPlayer()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	// 공격 컴포넌트
+	AttackFrom = CreateDefaultSubobject<USceneComponent>(TEXT("AttackFrom"));
+	AttackFrom->SetupAttachment(RootComponent);
+
+	FireFrom = CreateDefaultSubobject<USceneComponent>(TEXT("FireFrom"));
+	FireFrom->SetupAttachment(FollowCamera);
+	FireFrom->SetRelativeLocation(FVector(110.0f, -52.0f, 4.0f));
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
@@ -117,6 +128,12 @@ ARPGPlayer::ARPGPlayer()
 		DrawSwordAction = IADrawSwordRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> IADrawBowRef(TEXT("/Script/EnhancedInput.InputAction'/Game/ThirdPerson/Input/Actions/IA_DrawBow.IA_DrawBow'"));
+	if (IADrawBowRef.Object)
+	{
+		DrawBowAction = IADrawBowRef.Object;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UInputAction> AttackdRef(TEXT("/Script/EnhancedInput.InputAction'/Game/ThirdPerson/Input/Actions/IA_Attack.IA_Attack'"));
 	if (AttackdRef.Object)
 	{
@@ -141,6 +158,13 @@ ARPGPlayer::ARPGPlayer()
 	if (MenuRef.Class)
 	{
 		MenuWidgetClass = MenuRef.Class;
+	}
+
+	// 화살 설정
+	ConstructorHelpers::FClassFinder<AInteractionBase> BPArrowRef(TEXT("/Script/Engine.Blueprint'/Game/ThirdPerson/Blueprints/Interaction/Weapons/BP_WoodArrow.BP_WoodArrow_C'"));
+	if (BPArrowRef.Succeeded())
+	{
+		ArrowClass = BPArrowRef.Class;
 	}
 
 	// 스탯 설정 
@@ -202,11 +226,15 @@ void ARPGPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputCom
 		//메뉴
 		EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Started, this, &ARPGPlayer::OpenMenu);
 
-		//칼뽑기
+		//칼 장착
 		EnhancedInputComponent->BindAction(DrawSwordAction, ETriggerEvent::Completed, this, &ARPGPlayer::DrawSword);
+
+		//활 장착
+		EnhancedInputComponent->BindAction(DrawBowAction, ETriggerEvent::Completed, this, &ARPGPlayer::DrawBow);
 
 		//공격
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ARPGPlayer::Attack);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &ARPGPlayer::CancelAttack);
 	}
 
 }
@@ -249,7 +277,7 @@ void ARPGPlayer::Look(const FInputActionValue& Value)
 
 void ARPGPlayer::Jump()
 {
-	if (!bIsChangingEquipment || !bAttackSaved)
+	if (!bIsChangingEquipment && !bAttackSaved && !bFireArrow)
 	{
 		bPressedJump = true;
 		JumpKeyHoldTime = 0.0f;
@@ -258,13 +286,13 @@ void ARPGPlayer::Jump()
 
 void ARPGPlayer::DrawSword()
 {
-	if (SwordInfo.ItemClass)
+	if (SwordInfo.ItemClass && !bBowDrawn)
 	{
 		if (!bIsChangingEquipment)
 		{
-			if (bIsSwordDrawn)
+			if (bSwordDrawn)
 			{
-				bIsSwordDrawn = false;
+				bSwordDrawn = false;
 				GetCharacterMovement()->bOrientRotationToMovement = true;
 				GetCharacterMovement()->bUseControllerDesiredRotation = false;
 				MeleeCamReShift();
@@ -272,7 +300,7 @@ void ARPGPlayer::DrawSword()
 			}
 			else
 			{
-				bIsSwordDrawn = true;
+				bSwordDrawn = true;
 				GetCharacterMovement()->bOrientRotationToMovement = false;
 				GetCharacterMovement()->bUseControllerDesiredRotation = true;
 				MeleeCamShift();
@@ -282,6 +310,52 @@ void ARPGPlayer::DrawSword()
 
 		bIsChangingEquipment = true;
 	}
+}
+
+void ARPGPlayer::DrawBow()
+{
+	if (bHeld)
+	{
+		bCancel = true;
+		bCanAttack = true;
+		bFireArrow = false;
+
+		FTimerHandle DelayHandle;
+		float DelayTime = 0.1; //시간을 설정하고
+		GetWorld()->GetTimerManager().SetTimer(DelayHandle, FTimerDelegate::CreateLambda([&]()
+			{
+				bCancel = false;
+
+			}), DelayTime, false);
+	}
+	else
+	{
+		if (BowInfo.ItemClass)
+		{
+			if (!bIsChangingEquipment && !GetCharacterMovement()->IsFalling() && !bSwordDrawn)
+			{
+				if (bBowDrawn)
+				{
+					bBowDrawn = false;
+					GetCharacterMovement()->bOrientRotationToMovement = true;
+					GetCharacterMovement()->bUseControllerDesiredRotation = false;
+					BowCamReShift();
+					AttackType = EAttackType::None;
+				}
+				else
+				{
+					bBowDrawn = true;
+					GetCharacterMovement()->bOrientRotationToMovement = false;
+					GetCharacterMovement()->bUseControllerDesiredRotation = true;
+					BowCamShift();
+					AttackType = EAttackType::Ranged;
+				}
+				bIsChangingEquipment = true;
+			}
+		}
+	}
+
+
 }
 
 void ARPGPlayer::PickupItem(const FItemInfo& PickupItemInfo)
@@ -405,16 +479,23 @@ void ARPGPlayer::UseItem(const FItemInfo& ItemInfo)
 	switch (ItemInfo.ItemType)
 	{
 	case EItemType::None:
+
 		break;
+
 	case EItemType::HPItem:
+
 		RestoreHP(ItemInfo.Potency);
 		RemoveItem(ItemInfo);
 		break;
+
 	case EItemType::MPItem:
+
 		RestoreMP(ItemInfo.Potency);
 		RemoveItem(ItemInfo);
 		break; 
+
 	case EItemType::Sword:
+
 		ChangeSword(ItemInfo);
 		if (SwordRef)
 		{
@@ -425,7 +506,9 @@ void ARPGPlayer::UseItem(const FItemInfo& ItemInfo)
 		RemoveItem(ItemInfo);
 
 		break; 
+
 	case EItemType::Shield:
+
 		ChangeShield(ItemInfo);
 		if (ShieldRef)
 		{
@@ -436,9 +519,26 @@ void ARPGPlayer::UseItem(const FItemInfo& ItemInfo)
 		RemoveItem(ItemInfo);
 
 		break; 
-	case EItemType::KeyItem:
+
+	case EItemType::Accessory:
+
 		break;
+
+	case EItemType::Bow:
+
+		EquipBow(ItemInfo);
+		RemoveItem(ItemInfo);
+		break;
+
+	case EItemType::Arrows:
+
+		break;
+	case EItemType::KeyItem:
+
+		break;
+
 	case EItemType::Resources:
+
 		break;
 	}
 }
@@ -491,10 +591,11 @@ void ARPGPlayer::ChangeSword(const FItemInfo& ItemInfo)
 	}
 	
 	SwordInfo = ItemInfo;
+	SwordModifier = SwordInfo.Potency;
 
 	if (MenuWidget)
 	{
-		MenuWidget->CheckGear();
+		MenuWidget->CheckBtnStyle();
 	}
 }
 
@@ -506,32 +607,66 @@ void ARPGPlayer::ChangeShield(const FItemInfo& ItemInfo)
 	}
 
 	ShieldInfo = ItemInfo;
-
+	ShieldModifier = ShieldInfo.Potency;
 
 	if (MenuWidget)
 	{
-		MenuWidget->CheckGear();
+		MenuWidget->CheckBtnStyle();
+	}
+}
+
+void ARPGPlayer::ChangeAcc(const FItemInfo& ItemInfo)
+{
+	AccInfo = ItemInfo;
+}
+
+void ARPGPlayer::EquipBow(const FItemInfo& ItemInfo)
+{
+	if (BowInfo.ItemClass)
+	{
+		PickupItem(BowInfo);
+	}
+
+	BowInfo = ItemInfo;
+
+	if (MenuWidget)
+	{
+		MenuWidget->CheckBtnStyle();
 	}
 }
 
 void ARPGPlayer::SpawnGear()
 {
-	if (SwordInfo.ItemClass)
+	if (bBowDrawn)
 	{
-		SwordRef = GetWorld()->SpawnActor<AInteractionBase>(SwordInfo.ItemClass, GetMesh()->GetSocketTransform(TEXT("WeaponSlot"), ERelativeTransformSpace::RTS_Actor));
+		if (BowInfo.ItemClass)
+		{
+			BowRef = GetWorld()->SpawnActor<AInteractionBase>(BowInfo.ItemClass, GetMesh()->GetSocketTransform(TEXT("BowSlot"), ERelativeTransformSpace::RTS_Actor));
 
-		SwordRef->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("WeaponSlot"));
+			BowRef->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("BowSlot"));
 
-		SwordRef->Sphere->SetCollisionProfileName(TEXT("NoCollision"));
+			BowRef->Sphere->SetCollisionProfileName(TEXT("NoCollision"));
+		}
 	}
-
-	if (ShieldInfo.ItemClass)
+	else
 	{
-		ShieldRef = GetWorld()->SpawnActor<AInteractionBase>(ShieldInfo.ItemClass, GetMesh()->GetSocketTransform(TEXT("ShieldSlot"), ERelativeTransformSpace::RTS_Actor));
+		if (SwordInfo.ItemClass)
+		{
+			SwordRef = GetWorld()->SpawnActor<AInteractionBase>(SwordInfo.ItemClass, GetMesh()->GetSocketTransform(TEXT("WeaponSlot"), ERelativeTransformSpace::RTS_Actor));
 
-		ShieldRef->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("ShieldSlot"));
+			SwordRef->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("WeaponSlot"));
 
-		ShieldRef->Sphere->SetCollisionProfileName(TEXT("NoCollision"));
+			SwordRef->Sphere->SetCollisionProfileName(TEXT("NoCollision"));
+		}
+
+		if (ShieldInfo.ItemClass)
+		{
+			ShieldRef = GetWorld()->SpawnActor<AInteractionBase>(ShieldInfo.ItemClass, GetMesh()->GetSocketTransform(TEXT("ShieldSlot"), ERelativeTransformSpace::RTS_Actor));
+
+			ShieldRef->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("ShieldSlot"));
+
+			ShieldRef->Sphere->SetCollisionProfileName(TEXT("NoCollision"));
+		}
 	}
 }
 
@@ -545,6 +680,11 @@ void ARPGPlayer::DestroyGear()
 	if (ShieldRef)
 	{
 		ShieldRef->Destroy();
+	}
+
+	if (BowRef)
+	{
+		BowRef->Destroy();
 	}
 }
 
@@ -560,6 +700,20 @@ void ARPGPlayer::MeleeCamShift()
 void ARPGPlayer::MeleeCamReShift()
 {
 	FString FuncName = TEXT("MeleeCamReShift");
+	FOutputDeviceNull Ar;
+	this->CallFunctionByNameWithArguments(*FuncName, Ar, NULL, true);
+}
+
+void ARPGPlayer::BowCamShift()
+{
+	FString FuncName = TEXT("BowCamShift");
+	FOutputDeviceNull Ar;
+	this->CallFunctionByNameWithArguments(*FuncName, Ar, NULL, true);
+}
+
+void ARPGPlayer::BowCamReShift()
+{
+	FString FuncName = TEXT("BowCamReShift");
 	FOutputDeviceNull Ar;
 	this->CallFunctionByNameWithArguments(*FuncName, Ar, NULL, true);
 }
@@ -599,8 +753,22 @@ void ARPGPlayer::Attack()
 			}
 			break;
 		case EAttackType::Ranged:
+			if (bCanAttack)
+			{
+				bCanAttack = false;
+				bFireArrow = true;
+				bHeld = true;
+			}
 			break;
 		}
+	}
+}
+
+void ARPGPlayer::CancelAttack()
+{
+	if (bHeld)
+	{
+		bHeld = false;
 	}
 }
 
@@ -619,13 +787,90 @@ void ARPGPlayer::ResetAttack()
 	AdjustSpeed(450.0f);
 
 	FTimerHandle DelayHandle;
-	float DelayTime = 0.25; //시간을 설정하고
+	float DelayTime = 0.1; //시간을 설정하고
 	GetWorld()->GetTimerManager().SetTimer(DelayHandle, FTimerDelegate::CreateLambda([&]()
 		{
 			bCanAttack = true;
 
 		}), DelayTime, false);
 }
+
+void ARPGPlayer::AttackTrace()
+{
+	FVector StartLoc = AttackFrom->GetComponentLocation();
+	FVector EndLoc = StartLoc + AttackFrom->GetForwardVector() * 150;
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	TArray<AActor*> IgnoreActors;
+	IgnoreActors.Add(this);
+	IgnoreActors.Add(SwordRef);
+	IgnoreActors.Add(ShieldRef);
+	Params.AddIgnoredActors(IgnoreActors);
+
+	if (GetWorld()->SweepSingleByChannel(Hit, StartLoc, EndLoc, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(20.0f), Params))
+	{
+		if (Hit.GetActor()->ActorHasTag(TEXT("Enemy")))
+		{
+			int32 DamageMin = (Stat->Strength + SwordModifier) - FMath::RandRange(2,5);
+			int32 DamageMax = Stat->Strength + SwordModifier;
+			float DamageAmount = FMath::RandRange(DamageMin, DamageMax);
+			FDamageEvent DamageEvent;
+
+			Hit.GetActor()->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, FString::Printf(TEXT("%f"), DamageAmount));
+		}
+
+		int32 DamageMin = (Stat->Strength + SwordModifier) - FMath::RandRange(2, 5);
+		int32 DamageMax = Stat->Strength + SwordModifier;
+		float DamageAmount = FMath::RandRange(DamageMin, DamageMax);
+		FDamageEvent DamageEvent;
+		Hit.GetActor()->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, FString::Printf(TEXT("%f"), DamageAmount));
+	}
+
+	DrawDebugSphere(GetWorld(), EndLoc, 30.0f, 10, FColor::Cyan, false, 1, 0, 1);
+}
+
+void ARPGPlayer::FiringArrow()
+{
+	ArrowAimCheck();
+	
+	FVector SpawnLoc;
+	FRotator SpawnRot;
+	SpawnLoc = FireFrom->GetComponentTransform().GetLocation();
+	SpawnRot = UKismetMathLibrary::FindLookAtRotation(SpawnLoc, ArrowTarget);
+
+	ArrowRef = GetWorld()->SpawnActor<AInteractionBase>(ArrowClass, SpawnLoc, SpawnRot);
+
+	ArrowRef->Sphere->SetCollisionProfileName(TEXT("NoCollision"));
+
+	//FVector Loc = FireFrom->GetComponentTransform().GetLocation();;
+	//FRotator Rot = FollowCamera->GetRelativeRotation();
+	//FTransform SpawnTransform = UKismetMathLibrary::MakeTransform(Loc, Rot);
+
+	//ArrowRef = GetWorld()->SpawnActor<AInteractionBase>(ArrowClass, SpawnTransform);
+}
+
+FVector ARPGPlayer::ArrowAimCheck()
+{
+	FVector StartLoc = FollowCamera->GetComponentLocation();
+	FVector EndLoc = StartLoc + GetViewRotation().Vector() * 15000;
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(Hit, StartLoc, EndLoc, ECC_Visibility, Params))
+	{
+		ArrowTarget = Hit.Location;
+	}
+	else
+	{
+		ArrowTarget = EndLoc;
+	}
+
+	return ArrowTarget;
+}
+
 
 
 

@@ -13,6 +13,9 @@ enum class EItemType : uint8
 	MPItem,
 	Sword,
 	Shield,
+	Accessory,
+	Bow,
+	Arrows,
 	KeyItem,
 	Resources
 };

@@ -54,4 +54,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
 	uint8 bAttackSaved : 1;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	uint8 bDrawingBow : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	uint8 bFiring : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	uint8 bHeld : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	uint8 bCancel : 1;
+
 };

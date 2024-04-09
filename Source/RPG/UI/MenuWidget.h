@@ -66,9 +66,15 @@ public:
 	void BtnShieldClick();
 
 	UFUNCTION()
+	void BtnBowClick();
+
+	UFUNCTION()
+	void BtnArrowClick();
+
+	UFUNCTION()
 	void BtnAccClick();
 
-	void CheckGear();
+	void CheckBtnStyle();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Row;
