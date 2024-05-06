@@ -22,6 +22,8 @@
 #include "Components/SceneComponent.h"
 #include "Engine/DamageEvents.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Components/TextBlock.h"
+#include "Components/Image.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ARPGPlayer
@@ -405,10 +407,7 @@ void ARPGPlayer::InteractionBeginOverlap(UPrimitiveComponent* OverlappedComponen
 		if (InteractableActor)
 		{
 			InteractableActors.AddUnique(InteractableActor);
-			if (InteractableActors.Num() > 0)
-			{
-				InteractableActors[0]->Mesh->SetRenderCustomDepth(true);
-			}
+			CheckPickupInfo();
 		}
 	}
 }
@@ -422,7 +421,23 @@ void ARPGPlayer::InteractionEndOverlap(UPrimitiveComponent* OverlappedComponent,
 		{
 			InteractableActor->Mesh->SetRenderCustomDepth(false);
 			InteractableActors.Remove(InteractableActor);
+			CheckPickupInfo();
 		}
+	}
+}
+
+void ARPGPlayer::CheckPickupInfo()
+{
+	if (InteractableActors.Num() > 0)
+	{
+		InteractableActors[0]->Mesh->SetRenderCustomDepth(true);
+		HUDWidget->ItemName->SetText(InteractableActors[0]->ItemInfo.ItemName);
+		HUDWidget->ItemImage->SetBrushFromTexture(InteractableActors[0]->ItemInfo.ItemImage);
+	}
+	else
+	{
+		HUDWidget->ItemName->SetText(FText::GetEmpty());
+		HUDWidget->ItemImage->SetBrushFromTexture(nullptr);
 	}
 }
 
@@ -822,17 +837,10 @@ void ARPGPlayer::AttackTrace()
 
 			Hit.GetActor()->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
 			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, FString::Printf(TEXT("%f"), DamageAmount));
+
+			DrawDebugSphere(GetWorld(), EndLoc, 30.0f, 10, FColor::Cyan, false, 1, 0, 1);
 		}
-
-		int32 DamageMin = (Stat->Strength + SwordModifier) - FMath::RandRange(2, 5);
-		int32 DamageMax = Stat->Strength + SwordModifier;
-		float DamageAmount = FMath::RandRange(DamageMin, DamageMax);
-		FDamageEvent DamageEvent;
-		Hit.GetActor()->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, FString::Printf(TEXT("%f"), DamageAmount));
 	}
-
-	DrawDebugSphere(GetWorld(), EndLoc, 30.0f, 10, FColor::Cyan, false, 1, 0, 1);
 }
 
 void ARPGPlayer::FiringArrow()

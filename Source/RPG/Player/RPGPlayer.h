@@ -233,11 +233,12 @@ public:
 	UFUNCTION()
 	void InteractionEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	void CheckPickupInfo();
+
 	void Interaction();
 
-	void ToggleMenu();
 	void OpenMenu();
-	void CloseMenu();
+
 
 	// ¿Â∫Ò
 	UFUNCTION(BlueprintCallable)

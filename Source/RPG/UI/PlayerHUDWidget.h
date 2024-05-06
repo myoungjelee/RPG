@@ -38,6 +38,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
 	TObjectPtr<class ARPGPlayer> Player;
 
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	TObjectPtr<class UTextBlock> ItemName;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	TObjectPtr<class UImage> ItemImage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
+	TObjectPtr<class UTexture2D> ItemImageTexture;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
+	FText ItemNameText;
+
 	UPROPERTY()
 	float MaxHp;
 
